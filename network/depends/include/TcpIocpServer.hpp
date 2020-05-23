@@ -58,7 +58,7 @@ namespace doyou {
 					if (IO_TYPE::ACCEPT == ioEvent.pIoData->iotype)
 					{
 						char* ip = iocp.getAcceptExAddrs(ioEvent.pIoData, _address_family);
-						CELLLog_Info("AcceptEx IP: %s,%d", ip,ioEvent.pIoData->sockfd);
+						//CELLLog_Info("AcceptEx IP: %s,%d", ip,ioEvent.pIoData->sockfd);
 						//
 						IocpAccept(ioEvent.pIoData->sockfd,ip);
 						//继续 向IOCP投递接受连接任务

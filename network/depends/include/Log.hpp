@@ -1,7 +1,7 @@
 ﻿#ifndef _CELL_LOG_HPP_
 #define _CELL_LOG_HPP_
 
-//#include"CELL.hpp"
+#include"CELL.hpp"
 #include"Task.hpp"
 #include<ctime>
 namespace doyou {
@@ -22,7 +22,7 @@ namespace doyou {
 #endif
 #endif // _DEBUG
 
-#define CELLLog_Info(...) Log::Info(__VA_ARGS__)
+#define CELLLog_Info(...) doyou::io::Log::Info(__VA_ARGS__)
 #define CELLLog_Warring(...) Log::Warring(__VA_ARGS__)
 #define CELLLog_Error(...) Log::Error(__VA_ARGS__)
 #define CELLLog_Error(...) Log::Error(__VA_ARGS__)
@@ -60,12 +60,12 @@ namespace doyou {
 					_logFile = nullptr;
 				}
 				//
-				static char logPath[256] = {};
+				char logPath[256] = {};
 				//
 				if (hasDate)
 				{
-					auto t = system_clock::now();
-					auto tNow = system_clock::to_time_t(t);
+					auto t = std::chrono::system_clock::now();
+					auto tNow = std::chrono::system_clock::to_time_t(t);
 					std::tm* now = std::localtime(&tNow);
 					sprintf(logPath, "%s[%d-%d-%d_%d-%d-%d].txt", logName, now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 				}
@@ -92,10 +92,11 @@ namespace doyou {
 			template<typename ...Args>
 			static void PError(const char* pformat, Args ... args)
 			{
+				char* logStr = newFormatStr(pformat, args...);
 #ifdef _WIN32
 				auto errCode = GetLastError();
 
-				Instance()._taskServer.addTask([=]() {
+				Instance()._taskServer.addTask([errCode,logStr]() {
 
 					char text[256] = {};
 					FormatMessageA(
@@ -106,14 +107,16 @@ namespace doyou {
 						(LPSTR)&text, 256, NULL
 					);
 
-					EchoReal(true, "PError ", pformat, args...);
+					EchoReal(true, "PError ", "%s", logStr);
 					EchoReal(false, "PError ", "errno=%d,errmsg=%s", errCode, text);
+					delete[] logStr;
 				});
 #else
 				auto errCode = errno;
-				Instance()._taskServer.addTask([=]() {
-					EchoReal(true, "PError ", pformat, args...);
+				Instance()._taskServer.addTask([errCode, logStr]() {
+					EchoReal(true, "PError ", "%s", logStr);
 					EchoReal(true, "PError ", "errno<%d>,errmsg<%s>", errCode, strerror(errCode));
+					delete[] logStr;
 				});
 #endif
 			}
@@ -165,9 +168,11 @@ namespace doyou {
 			template<typename ...Args>
 			static void Echo(const char* type, const char* pformat, Args ... args)
 			{
+				char* logStr = newFormatStr(pformat, args...);
 				Log* pLog = &Instance();
-				pLog->_taskServer.addTask([=]() {
-					EchoReal(true, type, pformat, args...);
+				pLog->_taskServer.addTask([type, logStr]() {
+					EchoReal(true, type, "%s", logStr);
+					delete[] logStr;
 				});
 			}
 
@@ -195,6 +200,18 @@ namespace doyou {
 				printf(pformat, args...);
 				if (br)
 					printf("%s", "\n");
+			}
+
+			//返回的指针一定要delete[]
+			template<typename ...Args>
+			static char* newFormatStr(const char* pformat, Args ... args)
+			{
+				//计算格式化字符串所需要的char字符数量
+				//+1是为'\0'预留位置
+				size_t n = 1 + std::snprintf(nullptr, 0, pformat, args...);
+				char* pFormatStr = new char[n];
+				std::snprintf(pFormatStr, n, pformat, args...);
+				return pFormatStr;
 			}
 		private:
 			FILE * _logFile = nullptr;
