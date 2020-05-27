@@ -1,7 +1,7 @@
 ﻿#ifndef _doyou_io_SplitString_HPP_
 #define _doyou_io_SplitString_HPP_
 
-#include <string.h>
+#include<string>
 
 namespace doyou {
 	namespace io {
@@ -16,11 +16,13 @@ namespace doyou {
 				_str = str;
 				_first = true;
 			}
+
 			char* get(char end)
 			{
 				if (!_str)
 					return nullptr;
-				char *temp = strchr(_str, end);
+				//str="GET /login.php?a=5 HTTP/1.1"
+				char* temp = strchr(_str, end);
 				if (!temp)
 				{
 					if (_first)
@@ -28,20 +30,24 @@ namespace doyou {
 						_first = false;
 						return _str;
 					}
-					return nullptr ;
+					return nullptr;
 				}
+				//str="GET\0/login.php?a=5 HTTP/1.1"
 				temp[0] = '\0';
-
+				//ret="GET\0
 				char* ret = _str;
-				ret = temp + 1;
+				//str="/login.php?a=5 HTTP/1.1"
+				_str = temp + 1;
+
 				return ret;
 			}
 
-			char* get(char *end)
+			char* get(const char* end)
 			{
-				if (!_str)
+				if (!_str || !end)
 					return nullptr;
-				char *temp = strstr(_str, end);
+
+				char* temp = strstr(_str, end);
 				if (!temp)
 				{
 					if (_first)
@@ -53,7 +59,8 @@ namespace doyou {
 				}
 				temp[0] = '\0';
 				char* ret = _str;
-				ret = temp + strlen(end);
+				_str = temp + strlen(end);
+
 				return ret;
 			}
 		};

@@ -83,38 +83,35 @@ namespace doyou {
 					return false;
 				//清除上一个消息请求的数据
 				_header_map.clear();
-				char* data = _recvBuff.data();
+
+				SplitString ss;
+				ss.set(_recvBuff.data());
 				//请求行示例："GET /login.php?a=5 HTTP/1.1\r\n"
-				char* temp = strstr(data, "\r\n");
+				char* temp = ss.get("\r\n");
 				if (temp)
 				{
-					//"GET /login.php?a=5 HTTP/1.1\0\n"
-					temp[0] = '\0';
-					_header_map["RequestLine"] = data;
-					request_args(data);
+					_header_map["RequestLine"] = temp;
+					request_args(temp);
 				}
 
 				//请求头示例："Connection: Keep-Alive\r\n"
 				while (true)
 				{
-					//2=strlen("\r\n")
-					data = temp + 2;
 					//请求头每一行都有一个\r\n
-					temp = strstr(data, "\r\n");
+					temp = ss.get("\r\n");
 					if (temp)
 					{
 						//"Connection: Keep-Alive\0\n"
-						temp[0] = '\0';
+						SplitString ss2;
+						ss2.set(temp);
 						//每个请求头字段都是"key: val\r\n"
-						char* mid = strstr(data, ": ");
-						if (mid)
+						char* key = ss2.get(": ");
+						char* val = ss2.get(": ");
+						if (key && val)
 						{
-							//"Connection\0 Keep-Alive\0\n"
-							mid[0] = '\0';
-							//2=strlen("\r\n")
 							//key = Connection
 							//val = Keep-Alive
-							_header_map[data] = mid + 2;
+							_header_map[key] = val;
 						}
 					}
 					else {
@@ -127,27 +124,48 @@ namespace doyou {
 			bool request_args(char* requestLine)
 			{
 				//requestLine="GET /login.php?a=5 HTTP/1.1"
-				char* method;
-				char* url;
-				char* httpVersion;
-
-
 				SplitString ss;
 				ss.set(requestLine);
 				//requestLine="GET\0/login.php?a=5 HTTP/1.1"
-				method = ss.get(' ');
-				if (!method)
+				_method = ss.get(' ');
+				if (!_method)
 					return false;
 
-				url = ss.get(' ');
-				if (!url)
+				_url = ss.get(' ');
+				if (!_url)
 					return false;
 
-				httpVersion = ss.get(' ');
-				if (!httpVersion)
+				_httpVersion = ss.get(' ');
+				if (!_httpVersion)
 					return false;
 
-				return false;
+				ss.set(_url);
+				_url_path = ss.get('?');
+				if (!_url_path)
+					return false;
+
+				_url_args = ss.get('?');
+				if (!_url_args)
+					return true;
+
+				while (true)
+				{
+					char* temp = ss.get('&');
+					if (temp)
+					{
+						SplitString ss2;
+						ss2.set(temp);
+						char* key = ss2.get('=');
+						char* val = ss2.get('=');
+						if (key && val)
+							_args_map[key] = val;
+					}
+					else {
+						break;
+					}
+				}
+
+				return true;
 			}
 
 			virtual void pop_front_msg()
@@ -171,8 +189,14 @@ namespace doyou {
 
 		protected:
 			int _headerLen = 0;
-			std::map<std::string, std::string> _header_map;
+			std::map<std::string, char*> _header_map;
+			std::map<std::string, char*> _args_map;
 			RequestType _requestType = HttpClient::UNKOWN;
+			char* _method;
+			char* _url;
+			char* _url_path;
+			char* _url_args;
+			char* _httpVersion;
 		};
 	}
 }
