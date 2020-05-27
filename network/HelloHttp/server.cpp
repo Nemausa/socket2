@@ -15,49 +15,106 @@ public:
 
 		if (!pHttpClient->getRequestInfo())
 			return;
-		
-		if (pHttpClient->url("/add"))
+
+		if (pHttpClient->url_compre("/add"))
 		{
-			int a = pHttpClient->getInt("a", 0);
-			int b = pHttpClient->getInt("b", 0);
+			int a = pHttpClient->args_getInt("a", 0);
+			int b = pHttpClient->args_getInt("b", 0);
 			int c = a + b;
 
 			char respBodyBuff[32] = {};
 			sprintf(respBodyBuff, "a+b=%d", c);
 
+			char respBodyLen[32] = {};
+			sprintf(respBodyLen, "Content-Length: %d\r\n", strlen(respBodyBuff));
 
 			char response[512] = {};
 			strcat(response, "HTTP/1.1 200 OK\r\n");
 			strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
-
-			char respBodyLen[32] = {};
-			sprintf(respBodyLen, "Content-Length: %d\r\n", strlen(respBodyBuff));
 			strcat(response, respBodyLen);
 			strcat(response, "\r\n");
-			
 			strcat(response, respBodyBuff);
 			pClient->SendData(response, strlen(response));
 		}
-		// http消息 响应行
-		//std::string response = "HTTP/1.1 200 OK\r\n";
-		//response += "Content-Type: text/html;charset=UTF-8\r\n";
-		//response += "Content-Length: 5\r\n";
-		//response += "\r\n";
-		//response += "hello";
-		//pClient->SendData(response.c_str(), response.length());
-		//char response[512] = {};
-		//strcat(response, "HTTP/1.1 200 OK\r\n");
-		//strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
-		//strcat(response, "Content-Length: 14\r\n");
-		//strcat(response, "\r\n");
-		//strcat(response, "OnNetMsg:hello");
-		//pClient->SendData(response, strlen(response));
+		else if (pHttpClient->url_compre("/sub"))
+		{
+			int a = pHttpClient->args_getInt("a", 0);
+			int b = pHttpClient->args_getInt("b", 0);
+			int c = a - b;
+
+			char respBodyBuff[32] = {};
+			sprintf(respBodyBuff, "a-b=%d", c);
+
+			char respBodyLen[32] = {};
+			sprintf(respBodyLen, "Content-Length: %d\r\n", strlen(respBodyBuff));
+
+			char response[512] = {};
+			strcat(response, "HTTP/1.1 200 OK\r\n");
+			strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
+			strcat(response, respBodyLen);
+			strcat(response, "\r\n");
+			strcat(response, respBodyBuff);
+			pClient->SendData(response, strlen(response));
+		}
+		else {
+			std::string www = "D:/git/cppnet/www";
+			www += pHttpClient->url();
+			FILE * file = fopen(www.c_str(), "rb");
+			if (file)
+			{
+				// 获取文件的大小
+				fseek(file, 0, SEEK_END);
+				auto bytesize = ftell(file);
+				rewind(file);
+				//
+				char* buff = new char[bytesize];
+				//¶ÁÈ¡
+				auto readsize = fread(buff, 1, bytesize, file);
+				if (readsize == readsize)
+				{
+					char* respBodyBuff = buff;
+
+					char respBodyLen[32] = {};
+					sprintf(respBodyLen, "Content-Length: %d\r\n", readsize);
+
+					char response[512] = {};
+					strcat(response, "HTTP/1.1 200 OK\r\n");
+					strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
+					strcat(response, respBodyLen);
+					strcat(response, "\r\n");
+
+					pHttpClient->SendData(response, strlen(response));
+					pHttpClient->SendData(respBodyBuff, readsize);
+					//ÊÍ·ÅÄÚ´æ
+					delete[] buff;
+					//¹Ø±ÕÎÄ¼þ
+					fclose(file);
+					return;
+				}
+				//ÊÍ·ÅÄÚ´æ
+				delete[] buff;
+				//¹Ø±ÕÎÄ¼þ
+				fclose(file);
+			}
+
+			{
+				//httpÏûÏ¢ ÏìÓ¦ÐÐ
+				std::string response = "HTTP/1.1 404 Not Found\r\n";
+				response += "Content-Type: text/html;charset=UTF-8\r\n";
+				response += "Content-Length: 11\r\n";
+				response += "\r\n";
+				response += "(^o^): 404!";
+				pClient->SendData(response.c_str(), response.length());
+			}
+
+			
+		}
 	}
 private:
 
 };
 
-int main(int argc, char *args[])
+int main(int argc, char* args[])
 {
 	// 设置运行日志名称
 	Log::Instance().setLogPath("serverLog", "w", false);
@@ -106,3 +163,17 @@ int main(int argc, char *args[])
 
 	return 0;
 }
+
+//char htmlStr[] =
+//"\
+//<!DOCTYPE html>\
+//<html>\
+//<head>\
+//<title>HelloWeb</title>\
+//</head>\
+//<body>\
+//    <button>GET</button>\
+//	<button>POST</button>\
+//</body>\
+//</html>\
+//";

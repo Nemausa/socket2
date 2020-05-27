@@ -10,8 +10,6 @@
 	#include<WinSock2.h>
 	#include<ws2ipdef.h>
 	#include<WS2tcpip.h>
-	#pragma warning(disable : 4996)
-	#pragma warning(suppress : 4996)
 	#pragma comment(lib,"ws2_32.lib")
 
 	#include<iphlpapi.h>

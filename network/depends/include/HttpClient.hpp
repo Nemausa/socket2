@@ -193,35 +193,34 @@ namespace doyou {
 				return _url_path;
 			}
 
-			bool url(const char* str)
+			bool url_compre(const char* str)
 			{
 				return 0 == strcmp(_url_path, str);
 			}
 
-			bool has_args(const char* str)
+			bool has_args(const char* key)
 			{
-				return _args_map.find(str) != _args_map.end();
+				return _args_map.find(key) != _args_map.end();
 			}
 
-			bool has_header(const char* str)
+			bool has_header(const char* key)
 			{
-				return _header_map.find(str) != _header_map.end();
+				return _header_map.find(key) != _header_map.end();
 			}
 
-			int getInt(const char* key, int def)
+			int args_getInt(const char* argName, int def)
 			{
-				auto itr = _args_map.find(key);
+				auto itr = _args_map.find(argName);
 				if (itr == _args_map.end())
 				{
-
+					//CELLLog_Error("Config::getStr not find <%s>", argName);
 				}
-				else
-				{
+				else {
 					def = atoi(itr->second);
 				}
+				//CELLLog_Info("Config::getInt %s=%d", argName, def);
 				return def;
 			}
-
 		protected:
 			int _headerLen = 0;
 			std::map<std::string, char*> _header_map;
