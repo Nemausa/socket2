@@ -41,31 +41,48 @@ public:
 		else {
 			std::string www = "D:/git/cppnet/www";
 			www += pHttpClient->url();
-			FILE * file = fopen(www.c_str(), "rb");
-			if (file)
+
+			do 
 			{
+				FILE * file = fopen(www.c_str(), "rb");
+				if (!file)
+					break;
+				
 				// 获取文件的大小
 				fseek(file, 0, SEEK_END);
 				auto bytesize = ftell(file);
 				rewind(file);
+				// 发送缓冲区是否能写入那么多数据
+				if (!pHttpClient->canWrite(bytesize))
+				{
+					CELLLog_Warring("file too big, ulr=%s", www.c_str());
+					//关闭文件
+					fclose(file);
+					break;
+				}
 				//
 				char* buff = new char[bytesize];
-				//¶ÁÈ¡
+				// 读取
 				auto readsize = fread(buff, 1, bytesize, file);
-				if (readsize == readsize)
+				if (readsize != bytesize)
 				{
-					pHttpClient->resp200OK(buff, readsize);
-					//ÊÍ·ÅÄÚ´æ
+					CELLLog_Warring("readsize != bytesize, ulr=%s", www.c_str());
+					// 释放内存
 					delete[] buff;
-					//¹Ø±ÕÎÄ¼þ
+					//关闭文件
 					fclose(file);
-					return;
+					break;
 				}
-				//ÊÍ·ÅÄÚ´æ
+
+				pHttpClient->resp200OK(buff, readsize);
+				// 释放内存
 				delete[] buff;
-				//¹Ø±ÕÎÄ¼þ
+				//关闭文件
 				fclose(file);
-			}
+				
+			} while (false);
+
+			
 
 			pHttpClient->resp404NotFound();
 		}
