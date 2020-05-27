@@ -4,16 +4,16 @@
 
 using namespace doyou::io;
 
-class MyServer : public TcpHttpServer
+class MyServer:public TcpHttpServer
 {
 public:
 	virtual void OnNetMsg(Server* pServer, Client* pClient, netmsg_DataHeader* header)
 	{
-		HttpClient *pHttpClient = dynamic_cast<HttpClient*>(pClient);
+		HttpClient* pHttpClient = dynamic_cast<HttpClient*>(pClient);
 		if (!pHttpClient)
 			return;
 
-		if (!pHttpClient->getRequestInfo())
+		if(!pHttpClient->getRequestInfo())
 			return;
 
 		if (pHttpClient->url_compre("/add"))
@@ -39,61 +39,82 @@ public:
 			pHttpClient->resp200OK(respBodyBuff, strlen(respBodyBuff));
 		}
 		else {
-			std::string www = "D:/git/cppnet/www";
-			www += pHttpClient->url();
-
-			do 
+			if (!respFile(pHttpClient))
 			{
-				FILE * file = fopen(www.c_str(), "rb");
-				if (!file)
-					break;
-				
-				// 获取文件的大小
-				fseek(file, 0, SEEK_END);
-				auto bytesize = ftell(file);
-				rewind(file);
-				// 发送缓冲区是否能写入那么多数据
-				if (!pHttpClient->canWrite(bytesize))
-				{
-					CELLLog_Warring("file too big, ulr=%s", www.c_str());
-					//关闭文件
-					fclose(file);
-					break;
-				}
-				//
-				char* buff = new char[bytesize];
-				// 读取
-				auto readsize = fread(buff, 1, bytesize, file);
-				if (readsize != bytesize)
-				{
-					CELLLog_Warring("readsize != bytesize, ulr=%s", www.c_str());
-					// 释放内存
-					delete[] buff;
-					//关闭文件
-					fclose(file);
-					break;
-				}
-
-				pHttpClient->resp200OK(buff, readsize);
-				// 释放内存
-				delete[] buff;
-				//关闭文件
-				fclose(file);
-				
-			} while (false);
-
-			
-
-			pHttpClient->resp404NotFound();
+				pHttpClient->resp404NotFound();
+			}
 		}
 	}
-private:
 
+	bool respFile(HttpClient* pHttpClient)
+	{
+		std::string filePath;
+
+		if (pHttpClient->url_compre("/"))
+		{
+			filePath = _wwwRoot + pHttpClient->url() + _indexPage;
+		}
+		else {
+			filePath = _wwwRoot + pHttpClient->url();
+		}
+
+		FILE * file = fopen(filePath.c_str(), "rb");
+		if (!file)
+			return false;
+
+		//获取文件大小
+		fseek(file, 0, SEEK_END);
+		auto bytesize = ftell(file);
+		rewind(file);
+
+		//发送缓冲区是否能写入这么多数据
+		if (!pHttpClient->canWrite(bytesize))
+		{
+			CELLLog_Warring("!pHttpClient->canWrite(bytesize), url=%s", filePath.c_str());
+			fclose(file);
+			return false;
+		}
+
+		//读取
+		char* buff = new char[bytesize];
+		auto readsize = fread(buff, 1, bytesize, file);
+		if (readsize != bytesize)
+		{
+			CELLLog_Warring("readsize != bytesize, url=%s", filePath.c_str());
+			//释放内存
+			delete[] buff;
+			//关闭文件
+			fclose(file);
+			return false;
+		}
+
+		pHttpClient->resp200OK(buff, readsize);
+
+		//释放内存
+		delete[] buff;
+		//关闭文件
+		fclose(file);
+
+		return true;
+	}
+
+	void wwwRoot(const char* www)
+	{
+		_wwwRoot = www;
+	}
+
+	void indexPage(const char* index)
+	{
+		_indexPage = index;
+	}
+private:
+	std::string _wwwRoot;
+	std::string _indexPage;
 };
 
 int main(int argc, char* args[])
 {
-	// 设置运行日志名称
+	//设置运行日志名称
 	Log::Instance().setLogPath("serverLog", "w", false);
 	Config::Instance().Init(argc, args);
 
@@ -115,8 +136,13 @@ int main(int argc, char* args[])
 	else {
 		CELLLog_Info("-ipv4");
 		server.InitSocket();
-
 	}
+
+	const char* wwwroot = Config::Instance().getStr("wwwroot", "");
+	const char* indexpage = Config::Instance().getStr("indexpage", "");
+	server.wwwRoot(wwwroot);
+	server.indexPage(indexpage);
+
 	server.Bind(strIP, nPort);
 	server.Listen(SOMAXCONN);
 	server.Start(nThread);
@@ -141,7 +167,7 @@ int main(int argc, char* args[])
 	return 0;
 }
 
-//char htmlStr[] =
+//char htmlStr[] = 
 //"\
 //<!DOCTYPE html>\
 //<html>\
