@@ -25,16 +25,7 @@ public:
 			char respBodyBuff[32] = {};
 			sprintf(respBodyBuff, "a+b=%d", c);
 
-			char respBodyLen[32] = {};
-			sprintf(respBodyLen, "Content-Length: %d\r\n", strlen(respBodyBuff));
-
-			char response[512] = {};
-			strcat(response, "HTTP/1.1 200 OK\r\n");
-			strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
-			strcat(response, respBodyLen);
-			strcat(response, "\r\n");
-			strcat(response, respBodyBuff);
-			pClient->SendData(response, strlen(response));
+			pHttpClient->resp200OK(respBodyBuff, strlen(respBodyBuff));
 		}
 		else if (pHttpClient->url_compre("/sub"))
 		{
@@ -45,16 +36,7 @@ public:
 			char respBodyBuff[32] = {};
 			sprintf(respBodyBuff, "a-b=%d", c);
 
-			char respBodyLen[32] = {};
-			sprintf(respBodyLen, "Content-Length: %d\r\n", strlen(respBodyBuff));
-
-			char response[512] = {};
-			strcat(response, "HTTP/1.1 200 OK\r\n");
-			strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
-			strcat(response, respBodyLen);
-			strcat(response, "\r\n");
-			strcat(response, respBodyBuff);
-			pClient->SendData(response, strlen(response));
+			pHttpClient->resp200OK(respBodyBuff, strlen(respBodyBuff));
 		}
 		else {
 			std::string www = "D:/git/cppnet/www";
@@ -72,19 +54,7 @@ public:
 				auto readsize = fread(buff, 1, bytesize, file);
 				if (readsize == readsize)
 				{
-					char* respBodyBuff = buff;
-
-					char respBodyLen[32] = {};
-					sprintf(respBodyLen, "Content-Length: %d\r\n", readsize);
-
-					char response[512] = {};
-					strcat(response, "HTTP/1.1 200 OK\r\n");
-					strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
-					strcat(response, respBodyLen);
-					strcat(response, "\r\n");
-
-					pHttpClient->SendData(response, strlen(response));
-					pHttpClient->SendData(respBodyBuff, readsize);
+					pHttpClient->resp200OK(buff, readsize);
 					//ÊÍ·ÅÄÚ´æ
 					delete[] buff;
 					//¹Ø±ÕÎÄ¼þ
@@ -97,17 +67,7 @@ public:
 				fclose(file);
 			}
 
-			{
-				//httpÏûÏ¢ ÏìÓ¦ÐÐ
-				std::string response = "HTTP/1.1 404 Not Found\r\n";
-				response += "Content-Type: text/html;charset=UTF-8\r\n";
-				response += "Content-Length: 11\r\n";
-				response += "\r\n";
-				response += "(^o^): 404!";
-				pClient->SendData(response.c_str(), response.length());
-			}
-
-			
+			pHttpClient->resp404NotFound();
 		}
 	}
 private:

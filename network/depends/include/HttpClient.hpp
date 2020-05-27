@@ -31,7 +31,7 @@ namespace doyou {
 
 				int ret = checkHttpRequest();
 				if (ret < 0)
-					badRequest();
+					resp400BadRequest();
 				return ret > 0;
 			}
 			// 0 请求的消息不完整 继续等待消息
@@ -178,14 +178,39 @@ namespace doyou {
 				}
 			}
 
-			void badRequest()
+			void resp400BadRequest()
 			{
-				std::string response = "HTTP/1.1 400 Bad Request\r\n";
-				response += "Content-Type: text/html;charset=UTF-8\r\n";
-				response += "Content-Length: 25\r\n";
-				response += "\r\n";
-				response += "Only support GET or POST.";
-				SendData(response.c_str(), response.length());
+				writeResponse("400 Bad Request", "Only support GET or POST.", 25);
+			}
+
+			void resp404NotFound()
+			{
+				writeResponse("404 Not Found", "(^o^): 404!", 11);
+			}
+
+			void resp200OK(const char* bodyBuff, int bodyLen)
+			{
+				writeResponse("200 OK", bodyBuff, bodyLen);
+			}
+
+			void writeResponse(const char* code, const char* bodyBuff, int bodyLen)
+			{
+				//响应体内存长度
+				char respBodyLen[32] = {};
+				sprintf(respBodyLen, "Content-Length: %d\r\n", bodyLen);
+				//响应行+响应头缓冲区 256字节足够了
+				char response[256] = {};
+				//响应行
+				strcat(response, "HTTP/1.1 ");
+				strcat(response, code);
+				strcat(response, "\r\n");
+				//响应头
+				strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
+				strcat(response, respBodyLen);
+				strcat(response, "\r\n");
+				//发送响应体
+				SendData(response, strlen(response));
+				SendData(bodyBuff, bodyLen);
 			}
 
 			char* url()
