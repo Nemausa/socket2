@@ -148,6 +148,7 @@ namespace doyou {
 				if (!_url_args)
 					return true;
 
+				ss.set(_url_args);
 				while (true)
 				{
 					char* temp = ss.get('&');
@@ -185,6 +186,40 @@ namespace doyou {
 				response += "\r\n";
 				response += "Only support GET or POST.";
 				SendData(response.c_str(), response.length());
+			}
+
+			char* url()
+			{
+				return _url_path;
+			}
+
+			bool url(const char* str)
+			{
+				return 0 == strcmp(_url_path, str);
+			}
+
+			bool has_args(const char* str)
+			{
+				return _args_map.find(str) != _args_map.end();
+			}
+
+			bool has_header(const char* str)
+			{
+				return _header_map.find(str) != _header_map.end();
+			}
+
+			int getInt(const char* key, int def)
+			{
+				auto itr = _args_map.find(key);
+				if (itr == _args_map.end())
+				{
+
+				}
+				else
+				{
+					def = atoi(itr->second);
+				}
+				return def;
 			}
 
 		protected:

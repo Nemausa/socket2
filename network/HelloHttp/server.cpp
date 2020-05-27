@@ -10,8 +10,34 @@ public:
 	virtual void OnNetMsg(Server* pServer, Client* pClient, netmsg_DataHeader* header)
 	{
 		HttpClient *pHttpClient = dynamic_cast<HttpClient*>(pClient);
-		pHttpClient->getRequestInfo();
+		if (!pHttpClient)
+			return;
+
+		if (!pHttpClient->getRequestInfo())
+			return;
 		
+		if (pHttpClient->url("/add"))
+		{
+			int a = pHttpClient->getInt("a", 0);
+			int b = pHttpClient->getInt("b", 0);
+			int c = a + b;
+
+			char respBodyBuff[32] = {};
+			sprintf(respBodyBuff, "a+b=%d", c);
+
+
+			char response[512] = {};
+			strcat(response, "HTTP/1.1 200 OK\r\n");
+			strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
+
+			char respBodyLen[32] = {};
+			sprintf(respBodyLen, "Content-Length: %d\r\n", strlen(respBodyBuff));
+			strcat(response, respBodyLen);
+			strcat(response, "\r\n");
+			
+			strcat(response, respBodyBuff);
+			pClient->SendData(response, strlen(response));
+		}
 		// http消息 响应行
 		//std::string response = "HTTP/1.1 200 OK\r\n";
 		//response += "Content-Type: text/html;charset=UTF-8\r\n";
@@ -19,13 +45,13 @@ public:
 		//response += "\r\n";
 		//response += "hello";
 		//pClient->SendData(response.c_str(), response.length());
-		char response[512] = {};
-		strcat(response, "HTTP/1.1 200 OK\r\n");
-		strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
-		strcat(response, "Content-Length: 14\r\n");
-		strcat(response, "\r\n");
-		strcat(response, "OnNetMsg:hello");
-		pClient->SendData(response, strlen(response));
+		//char response[512] = {};
+		//strcat(response, "HTTP/1.1 200 OK\r\n");
+		//strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
+		//strcat(response, "Content-Length: 14\r\n");
+		//strcat(response, "\r\n");
+		//strcat(response, "OnNetMsg:hello");
+		//pClient->SendData(response, strlen(response));
 	}
 private:
 
