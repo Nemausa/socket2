@@ -2,6 +2,7 @@
 #define _doyou_io_HttpClient_HPP_
 
 #include"Client.hpp"
+#include "SplitString.hpp"
 
 namespace doyou {
 	namespace io {
@@ -126,39 +127,25 @@ namespace doyou {
 			bool request_args(char* requestLine)
 			{
 				//requestLine="GET /login.php?a=5 HTTP/1.1"
-				std::string method;
-				std::string url;
-				std::string httpVersion;
+				char* method;
+				char* url;
+				char* httpVersion;
 
-				char* temp = strchr(requestLine, ' ');
-				if (temp)
-				{
-					//requestLine="GET\0/login.php?a=5 HTTP/1.1"
-					temp[0] = '\0';
-					//GET
-					method = requestLine;
-				}
-				else {
+
+				SplitString ss;
+				ss.set(requestLine);
+				//requestLine="GET\0/login.php?a=5 HTTP/1.1"
+				method = ss.get(' ');
+				if (!method)
 					return false;
-				}
 
-				//requestLine="/login.php?a=5 HTTP/1.1"
-				requestLine = temp + 1;
-				temp = strchr(requestLine, ' ');
-				if (temp)
-				{
-					//requestLine="/login.php?a=5\0HTTP/1.1"
-					temp[0] = '\0';
-					//GET
-					url = requestLine;
-				}
-				else {
+				url = ss.get(' ');
+				if (!url)
 					return false;
-				}
 
-				//requestLine="HTTP/1.1"
-				requestLine = temp + 1;
-				httpVersion = requestLine;
+				httpVersion = ss.get(' ');
+				if (!httpVersion)
+					return false;
 
 				return false;
 			}
