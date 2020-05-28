@@ -138,7 +138,7 @@ int main(int argc, char* args[])
 		server.InitSocket();
 	}
 
-	const char* wwwroot = Config::Instance().getStr("wwwroot", "");
+	const char* wwwroot = Config::Instance().getStr("wwwroot", "D:/git/cppnet/www");
 	const char* indexpage = Config::Instance().getStr("indexpage", "");
 	server.wwwRoot(wwwroot);
 	server.indexPage(indexpage);
