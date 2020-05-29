@@ -3,6 +3,7 @@
 
 #include"Client.hpp"
 #include"SplitString.hpp"
+#include "KeyString.hpp"
 
 namespace doyou {
 	namespace io {
@@ -262,6 +263,7 @@ namespace doyou {
 				strcat(response, "\r\n");
 				//响应头
 				strcat(response, "Content-Type: text/html;charset=UTF-8\r\n");
+				strcat(response, "Access-Control-Allow-Origin: *\r\n");
 				strcat(response, respBodyLen);
 				strcat(response, "\r\n");
 				//发送响应体
@@ -324,8 +326,8 @@ namespace doyou {
 		protected:
 			int _headerLen = 0;
 			int _bodyLen = 0;
-			std::map<std::string, char*> _header_map;
-			std::map<std::string, char*> _args_map;
+			std::map<KeyString, char*> _header_map;
+			std::map<KeyString, char*> _args_map;
 			RequestType _requestType = HttpClient::UNKOWN;
 			char* _method;
 			char* _url;

@@ -167,6 +167,7 @@
     <ClInclude Include="..\depends\include\INetEvent.hpp" />
     <ClInclude Include="..\depends\include\Iocp.hpp" />
     <ClInclude Include="..\depends\include\IocpServer.hpp" />
+    <ClInclude Include="..\depends\include\KeyString.hpp" />
     <ClInclude Include="..\depends\include\Log.hpp" />
     <ClInclude Include="..\depends\include\MessageHeader.hpp" />
     <ClInclude Include="..\depends\include\MsgStream.hpp" />
