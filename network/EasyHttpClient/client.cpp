@@ -18,7 +18,8 @@ public:
 
 	void get(const char* url)
 	{
-		hostname2ip(url, "80");
+		detach_url(url);
+		hostname2ip(_host.c_str(), _port.c_str());
 	}
 
 	int hostname2ip(const char* hostname, const char* port)
@@ -79,6 +80,60 @@ public:
 		freeaddrinfo(pAddrList);
 		return ret;
 	}
+private:
+	void detach_url(std::string httpurl)
+	{
+		_httpType.clear();
+		_host.clear();
+		_port.clear();
+		_args.clear();
+		_path.clear();
+		auto pos1 = httpurl.find("://");
+		if (pos1 != std::string::npos)
+		{
+			_httpType = httpurl.substr(0, pos1);
+			pos1 += 3;
+		}
+		else
+		{
+			pos1 = 0;
+		}
+		
+		auto pos2 = httpurl.find("/", pos1);
+		if (pos2 != std::string::npos)
+		{
+			_host = httpurl.substr(pos1, pos2 - pos1);
+			_path = httpurl.substr(pos2);
+
+			pos1 = _path.find("?");
+			if (pos1 != std::string::npos)
+			{
+				_args = _path.substr(pos1 + 1);
+				_path = _path.substr(0, pos1);
+			}
+		}
+		else
+		{
+			_host = httpurl.substr(pos1);
+		}
+
+		pos1 = _host.find(":");
+		if (pos1 != std::string::npos)
+		{
+			_port = _host.substr(pos1 + 1);
+			_host = _host.substr(0, pos1);
+		}
+
+
+
+		return;
+	}
+private:
+	std::string _httpType;
+	std::string _host;
+	std::string _port;
+	std::string _path;
+	std::string _args;
 };
 
 int main(int argc, char* args[])
@@ -91,7 +146,7 @@ int main(int argc, char* args[])
 	char hname[128] = {};
 	gethostname(hname, 127);
 
-	pClient.get(hname); 
+	pClient.get("https://www.google.com:80/add?a=5&b=4"); 
 	pClient.Close();
 	return 0;
 }  
