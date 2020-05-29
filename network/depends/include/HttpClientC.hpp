@@ -1,11 +1,11 @@
 ﻿#ifndef _doyou_io_HttpClientC_HPP_
 #define _doyou_io_HttpClientC_HPP_
 
-#include<map>
 
 #include"Client.hpp"
 #include"SplitString.hpp"
 #include"KeyString.hpp"
+#include<map>
 
 namespace doyou {
 	namespace io {
@@ -25,7 +25,7 @@ namespace doyou {
 				if (_recvBuff.dataLen() < 20)
 					return false;
 
-				int ret = checkHttpResponse();
+				int ret = checkHttpRespone();
 				//if (ret < 0)
 				//	resp400BadRequest();
 				return ret > 0;
@@ -33,7 +33,7 @@ namespace doyou {
 			// 0 响应的消息不完整 继续等待消息
 			// -1 不支持的响应类型
 			// -2 异常请求
-			int checkHttpResponse()
+			int checkHttpRespone()
 			{
 				//查找http响应消息结束标记
 				char* temp = strstr(_recvBuff.data(), "\r\n\r\n");
@@ -97,7 +97,7 @@ namespace doyou {
 			
 			//解析http响应
 			//确定收到完整http响应消息的时候才能调用
-			bool getRequestInfo()
+			bool getResponeInfo()
 			{
 				//判断是否已经收到了完整请求
 				if (_headerLen <= 0)
@@ -105,8 +105,6 @@ namespace doyou {
 				//清除上一个消息请求的数据
 				_header_map.clear();
 
-				char* pp = _recvBuff.data();
-				pp[_headerLen-1] = '\0';
 				SplitString ss;
 				ss.set(_recvBuff.data());
 				//请求行示例："GET /login.php?a=5 HTTP/1.1\r\n"
@@ -146,8 +144,7 @@ namespace doyou {
 				if (_bodyLen > 0)
 				{
 					//_args_map.clear();
-					//SplitUrlArgs(_recvBuff.data() + _headerLen);
-					_args_map["Content"] = _recvBuff.data() + _headerLen;
+					SplitUrlArgs(_recvBuff.data() + _headerLen);
 				}
 				//根据请求头，做出相应处理
 				const char* str = header_getStr("Connection", "");
@@ -298,17 +295,6 @@ namespace doyou {
 				return def;
 			}
 
-			const char* args_getStr(const char* argName, const char* def)
-			{
-				auto itr = _args_map.find(argName);
-				if (itr != _args_map.end())
-				{
-					return itr->second;
-				}
-				else {
-					return def;
-				}
-			}
 
 			const char* header_getStr(const char* argName, const char* def)
 			{
@@ -329,13 +315,6 @@ namespace doyou {
 					this->onClose();
 				}
 			}
-
-
-			const char* content()
-			{
-				return args_getStr("Content", nullptr);
-			}
-
 		protected:
 			int _headerLen = 0;
 			int _bodyLen = 0;

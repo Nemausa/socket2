@@ -13,7 +13,12 @@ public:
 public:
 	virtual void OnNetMsg(netmsg_DataHeader* header)
 	{
-
+		CELLLog_Info("recv server msg.");
+		HttpClientC* pHttpClient = dynamic_cast<HttpClientC*>(_pClient);
+		if (!pHttpClient)
+			return;
+		if (!pHttpClient->getResponeInfo())
+		return;
 	}
 
 	void get(const char* httpurl)
@@ -123,7 +128,7 @@ private:
 		unsigned short port_ = 80;
 		if (port, strlen(port) > 0)
 			port_ = atoi(port);
-		if (INVALID_SOCKET == InitSocket(af, 10240, 10240))
+		if (INVALID_SOCKET == InitSocket(af, 10240, 102400))
 			return false;
 
 		if (SOCKET_ERROR == Connect(ip, port_))
