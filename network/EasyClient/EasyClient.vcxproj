@@ -179,6 +179,7 @@
     <ClInclude Include="..\depends\include\TcpClient.hpp" />
     <ClInclude Include="..\depends\include\TcpEpollClient.hpp" />
     <ClInclude Include="..\depends\include\TcpEpollServer.hpp" />
+    <ClInclude Include="..\depends\include\TcpHttpServer.hpp" />
     <ClInclude Include="..\depends\include\TcpIocpClient.hpp" />
     <ClInclude Include="..\depends\include\TcpIocpServer.hpp" />
     <ClInclude Include="..\depends\include\TcpSelectClient.hpp" />

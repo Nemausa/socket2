@@ -12,7 +12,8 @@ cmd=$cmd" -sendback"
 cmd=$cmd" -sendfull"
 cmd=$cmd" checkMsgID"
 cmd=$cmd" -p"
-
+cmd=$cmd" wwwroot=D:/dev/www"
+cmd=$cmd" indexpag=index.html"
 ./EasyTcpServer $cmd
 #
 read -p "..press any key to exit.." var

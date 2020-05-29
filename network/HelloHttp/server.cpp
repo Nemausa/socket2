@@ -1,3 +1,4 @@
+
 #include"Log.hpp"
 #include"Config.hpp"
 #include"TcpHttpServer.hpp"
@@ -9,6 +10,7 @@ class MyServer:public TcpHttpServer
 public:
 	virtual void OnNetMsg(Server* pServer, Client* pClient, netmsg_DataHeader* header)
 	{
+		TcpServer::OnNetMsg(pServer, pClient, header);
 		HttpClient* pHttpClient = dynamic_cast<HttpClient*>(pClient);
 		if (!pHttpClient)
 			return;
@@ -166,17 +168,3 @@ int main(int argc, char* args[])
 
 	return 0;
 }
-
-//char htmlStr[] = 
-//"\
-//<!DOCTYPE html>\
-//<html>\
-//<head>\
-//<title>HelloWeb</title>\
-//</head>\
-//<body>\
-//    <button>GET</button>\
-//	<button>POST</button>\
-//</body>\
-//</html>\
-//";
