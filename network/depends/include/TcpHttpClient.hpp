@@ -2,7 +2,6 @@
 #define _doyou_io_TcpHttpClient_HPP_
 
 #include"TcpClientMgr.hpp"
-#include"HttpClient.hpp"
 
 
 namespace doyou {

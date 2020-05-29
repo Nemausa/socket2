@@ -8,7 +8,7 @@ class MyHttpClient : public TcpHttpClient
 public:
 	MyHttpClient()
 	{
-		InitSocket(AF_INET, 10240, 10240);
+		NetWork::Init();
 	}
 public:
 	virtual void OnNetMsg(netmsg_DataHeader* header)
@@ -16,10 +16,13 @@ public:
 
 	}
 
-	void get(const char* url)
+	void get(const char* httpurl)
 	{
-		detach_url(url);
-		hostname2ip(_host.c_str(), _port.c_str());
+		deatch_http_url(httpurl);
+		if (0 == hostname2ip(_host.c_str(), _port.c_str()))
+		{
+			url2get(_host.c_str(), _path.c_str(), _args.c_str());
+		}
 	}
 
 	int hostname2ip(const char* hostname, const char* port)
@@ -36,9 +39,6 @@ public:
 			return -1;
 		}
 
-		unsigned short port_ = 80;
-		if (port, strlen(port) > 0)
-			port_ = atoi(port);
 
 
 		addrinfo hints = {};
@@ -54,10 +54,9 @@ public:
 			freeaddrinfo(pAddrList);
 			return ret;
 		}
-
-		char ipStr[256] = {};
 		for (auto pAddr = pAddrList; pAddr != nullptr; pAddr = pAddr->ai_next)
 		{
+			char ipStr[256] = {};
 			ret = getnameinfo(pAddr->ai_addr, pAddr->ai_addrlen, ipStr, 255, nullptr, 0, NI_NUMERICHOST);
 			if (0 != ret)
 			{
@@ -74,6 +73,10 @@ public:
 					continue;
 				}
 
+				if (connet2ip(pAddr->ai_family, ipStr, port))
+				{
+					break;
+				}
 			}
 		}
 
@@ -81,43 +84,90 @@ public:
 		return ret;
 	}
 private:
-	void detach_url(std::string httpurl)
+	void url2get(const char* host, const char* path, const char* args)
+	{
+		std::string msg = "GET ";
+		if(path && strlen(path) > 0)
+			msg += path;
+		else
+			msg += "/";
+
+		if (args && strlen(args) > 0)
+		{
+			msg += "?";
+			msg += args;
+		}
+
+		msg += " HTTP/1.1\r\n";
+
+		msg += "Host: ";
+		msg += host;
+		msg += "\r\n";
+
+		msg += "Connection: keep-alive\r\n";
+		msg += "Accept: */*\r\n";
+
+		msg += "Origin: ";
+		msg += host;
+		msg += "\r\n";
+
+		msg += "\r\n";
+
+		SendData(msg.c_str(), msg.length());
+	}
+
+	bool connet2ip(int af, const char* ip, const char* port)
+	{
+		if (!ip)
+			return false;
+		unsigned short port_ = 80;
+		if (port, strlen(port) > 0)
+			port_ = atoi(port);
+		if (INVALID_SOCKET == InitSocket(af, 10240, 10240))
+			return false;
+
+		if (SOCKET_ERROR == Connect(ip, port_))
+			return false;
+
+		Log::Info("connet2ip(%s,%d)", ip, port_);
+	}
+
+	void deatch_http_url(std::string httpurl)
 	{
 		_httpType.clear();
 		_host.clear();
 		_port.clear();
-		_args.clear();
 		_path.clear();
+		_args.clear();
+
 		auto pos1 = httpurl.find("://");
 		if (pos1 != std::string::npos)
 		{
 			_httpType = httpurl.substr(0, pos1);
 			pos1 += 3;
 		}
-		else
-		{
+		else {
 			pos1 = 0;
 		}
 		
-		auto pos2 = httpurl.find("/", pos1);
+		auto pos2 = httpurl.find('/', pos1);
 		if (pos2 != std::string::npos)
 		{
 			_host = httpurl.substr(pos1, pos2 - pos1);
 			_path = httpurl.substr(pos2);
 
-			pos1 = _path.find("?");
+			pos1 = _path.find('?');
 			if (pos1 != std::string::npos)
 			{
 				_args = _path.substr(pos1 + 1);
 				_path = _path.substr(0, pos1);
 			}
 		}
-		else
-		{
+		else {
 			_host = httpurl.substr(pos1);
-		}
+		}          
 
-		pos1 = _host.find(":");
+		pos1 = _host.find(':');
 		if (pos1 != std::string::npos)
 		{
 			_port = _host.substr(pos1 + 1);
@@ -126,7 +176,6 @@ private:
 
 
 
-		return;
 	}
 private:
 	std::string _httpType;
@@ -146,7 +195,13 @@ int main(int argc, char* args[])
 	char hname[128] = {};
 	gethostname(hname, 127);
 
-	pClient.get("https://www.google.com:80/add?a=5&b=4"); 
+	pClient.get("https://www.baidu.com");
+
+
+	while (true)
+	{
+		pClient.OnRun();
+	}
 	pClient.Close();
 	return 0;
 }  
