@@ -25,7 +25,7 @@ namespace doyou {
 				if (_recvBuff.dataLen() < 20)
 					return false;
 
-				int ret = checkHttpRespone();
+				int ret = checkHttpResponse();
 				//if (ret < 0)
 				//	resp400BadRequest();
 				return ret > 0;
@@ -33,7 +33,7 @@ namespace doyou {
 			// 0 响应的消息不完整 继续等待消息
 			// -1 不支持的响应类型
 			// -2 异常请求
-			int checkHttpRespone()
+			int checkHttpResponse()
 			{
 				//查找http响应消息结束标记
 				char* temp = strstr(_recvBuff.data(), "\r\n\r\n");
@@ -97,7 +97,7 @@ namespace doyou {
 			
 			//解析http响应
 			//确定收到完整http响应消息的时候才能调用
-			bool getResponeInfo()
+			bool getResponseInfo()
 			{
 				//判断是否已经收到了完整请求
 				if (_headerLen <= 0)
@@ -288,11 +288,9 @@ namespace doyou {
 			int args_getInt(const char* argName, int def)
 			{
 				auto itr = _args_map.find(argName);
-				if (itr == _args_map.end())
+				if (itr != _args_map.end())
 				{
 					//CELLLog_Error("Config::getStr not find <%s>", argName);
-				}
-				else {
 					def = atoi(itr->second);
 				}
 				//CELLLog_Info("Config::getInt %s=%d", argName, def);
@@ -302,10 +300,8 @@ namespace doyou {
 			const char* args_getStr(const char* argName, const char* def)
 			{
 				auto itr = _args_map.find(argName);
-				if (itr == _args_map.end())
+				if (itr != _args_map.end())
 				{
-				}
-				else {
 					return itr->second;
 				}
 				return def;
