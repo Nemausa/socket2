@@ -5,6 +5,8 @@ using namespace doyou::io;
 
 class MyHttpClient : public TcpHttpClient
 {
+private:
+	typedef std::function<void(HttpClientC*)> EventCall;
 public:
 	MyHttpClient()
 	{
@@ -20,13 +22,18 @@ public:
 		if (!pHttpClient->getResponseInfo())
 			return;
 
-		auto respStr = pHttpClient->content();
-		CELLLog_Info("%s\n", respStr);
+		if (_onRespCall)
+		{
+			_onRespCall(pHttpClient);
+		}
+
+		
 
 	}
 
-	void get(const char* httpurl)
+	void get(const char* httpurl, EventCall onRespCall)
 	{
+		_onRespCall = onRespCall;
 		deatch_http_url(httpurl);
 		if (0 == hostname2ip(_host.c_str(), _port.c_str()))
 		{
@@ -192,6 +199,7 @@ private:
 	std::string _port;
 	std::string _path;
 	std::string _args;
+	EventCall _onRespCall = nullptr;
 };
 
 int main(int argc, char* args[])
@@ -199,7 +207,6 @@ int main(int argc, char* args[])
 #if _WIN32 && _CONSOLE
 	system("chcp 65001");
 #endif
-	//设置运行日志名称
 	Log::Instance().setLogPath("clientLog", "w", false);
 	Config::Instance().Init(argc, args);
 
@@ -207,7 +214,10 @@ int main(int argc, char* args[])
 	char hname[128] = {};
 	gethostname(hname, 127);
 
-	pClient.get("https://www.baidu.com");
+	pClient.get("https://www.baidu.com", [](HttpClientC* pHttpClient) {
+		auto respStr = pHttpClient->content();
+		CELLLog_Info("%s\n", respStr);
+	});
 
 
 	while (true)
