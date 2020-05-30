@@ -105,6 +105,9 @@ namespace doyou {
 				//清除上一个消息请求的数据
 				_header_map.clear();
 
+				char* pp = _recvBuff.data();
+				pp[_headerLen-1] = '\0';
+
 				SplitString ss;
 				ss.set(_recvBuff.data());
 				//请求行示例："GET /login.php?a=5 HTTP/1.1\r\n"
@@ -144,7 +147,8 @@ namespace doyou {
 				if (_bodyLen > 0)
 				{
 					//_args_map.clear();
-					SplitUrlArgs(_recvBuff.data() + _headerLen);
+					//SplitUrlArgs(_recvBuff.data() + _headerLen);
+					_args_map["Content"] = _recvBuff.data() + _headerLen;
 				}
 				//根据请求头，做出相应处理
 				const char* str = header_getStr("Connection", "");
@@ -295,6 +299,18 @@ namespace doyou {
 				return def;
 			}
 
+			const char* args_getStr(const char* argName, const char* def)
+			{
+				auto itr = _args_map.find(argName);
+				if (itr == _args_map.end())
+				{
+				}
+				else {
+					return itr->second;
+				}
+				return def;
+			}
+
 
 			const char* header_getStr(const char* argName, const char* def)
 			{
@@ -314,6 +330,11 @@ namespace doyou {
 				{
 					this->onClose();
 				}
+			}
+
+			const char* content()
+			{
+				return args_getStr("Content", nullptr);
 			}
 		protected:
 			int _headerLen = 0;

@@ -18,7 +18,11 @@ public:
 		if (!pHttpClient)
 			return;
 		if (!pHttpClient->getResponeInfo())
-		return;
+			return;
+
+		auto respStr = pHttpClient->content();
+		CELLLog_Info("%s\n", respStr);
+
 	}
 
 	void get(const char* httpurl)
