@@ -55,7 +55,13 @@ public:
 			return -1;
 		}
 
+		unsigned short port_ = 80;
+		if (port, strlen(port) > 0)
+			port_ = atoi(port);
 
+		// 判断主机名和端口号不变，就不重新连接服务端
+		if ( isRun() && _hots0 == hostname && port_ == _port0)
+			return 0;
 
 		addrinfo hints = {};
 		hints.ai_family = AF_UNSPEC;
@@ -89,8 +95,10 @@ public:
 					continue;
 				}
 
-				if (connet2ip(pAddr->ai_family, ipStr, port))
+				if (connet2ip(pAddr->ai_family, ipStr, port_))
 				{
+					_hots0 = _host;
+					_port0 = port_;
 					break;
 				}
 			}
@@ -132,21 +140,20 @@ private:
 		SendData(msg.c_str(), msg.length());
 	}
 
-	bool connet2ip(int af, const char* ip, const char* port)
+	bool connet2ip(int af, const char* ip, unsigned short port)
 	{
-		if (!ip)
+		if (!ip || isRun())
 			return false;
-		unsigned short port_ = 80;
-		if (port, strlen(port) > 0)
-			port_ = atoi(port);
+		
 		if (INVALID_SOCKET == InitSocket(af, 10240, 102400))
 			return false;
 
-		if (SOCKET_ERROR == Connect(ip, port_))
+		if (SOCKET_ERROR == Connect(ip, port))
 			return false;
 
-		Log::Info("connet2ip(%s,%d)", ip, port_);
+		Log::Info("connet2ip(%s,%d)", ip, port);
 	}
+	
 
 	void deatch_http_url(std::string httpurl)
 	{
@@ -189,9 +196,6 @@ private:
 			_port = _host.substr(pos1 + 1);
 			_host = _host.substr(0, pos1);
 		}
-
-
-
 	}
 private:
 	std::string _httpType;
@@ -199,7 +203,34 @@ private:
 	std::string _port;
 	std::string _path;
 	std::string _args;
+	//上一次请求的域名/主机名
+	std::string _hots0;
+	//上一次请求的端口号
+	unsigned short _port0;
+
 	EventCall _onRespCall = nullptr;
+
+public:
+	void test()
+	{
+		static int i = 0;
+		if (i > 150)
+		{
+			this->get("https://www.qq.com", [this](HttpClientC* pHttpClient) {
+				CELLLog_Info("recv server msg. %d", ++i);
+				test();
+			});
+		}
+		else
+		{
+			this->get("https://www.baidu.com", [this](HttpClientC* pHttpClient) {
+				CELLLog_Info("recv server msg. %d", ++i);
+				test();
+			});
+		}
+		
+	}
+
 };
 
 int main(int argc, char* args[])
@@ -214,11 +245,11 @@ int main(int argc, char* args[])
 	char hname[128] = {};
 	gethostname(hname, 127);
 
-	pClient.get("https://www.baidu.com", [](HttpClientC* pHttpClient) {
-		auto respStr = pHttpClient->content();
-		CELLLog_Info("%s\n", respStr);
-	});
-
+	//pClient.get("https://www.163.com", [](HttpClientC* pHttpClient) {
+	//	auto respStr = pHttpClient->content();
+	//	CELLLog_Info("%s\n", respStr);
+	//});
+	pClient.test();
 
 	while (true)
 	{
