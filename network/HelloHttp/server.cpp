@@ -11,7 +11,7 @@ public:
 	virtual void OnNetMsg(Server* pServer, Client* pClient, netmsg_DataHeader* header)
 	{
 		TcpServer::OnNetMsg(pServer, pClient, header);
-		HttpClients* pHttpClient = dynamic_cast<HttpClients*>(pClient);
+		HttpClientS* pHttpClient = dynamic_cast<HttpClientS*>(pClient);
 		if (!pHttpClient)
 			return;
 
@@ -43,10 +43,13 @@ public:
 		else if (pHttpClient->url_compre("/jsonTest"))
 		{
 			auto tokenStr = pHttpClient->args_getStr("token", nullptr);
-			auto jsonStr = pHttpClient->args_getStr("json", "no json data");
 			if (tokenStr)
 			{
-				// 对tokenStr进行身份验证
+				//对tokenStr进行身份验证
+				auto jsonStr = pHttpClient->args_getStr("json", "no json data");
+				//使用第三方json库解析jsonStr
+				//做出相应处理
+				//反馈结果
 				pHttpClient->resp200OK(jsonStr, strlen(jsonStr));
 			}
 			else
@@ -54,7 +57,6 @@ public:
 				auto ret = "{\"status\":\"error\"}";
 				pHttpClient->resp200OK(ret, strlen(ret));
 			}
-
 		}
 		else {
 			if (!respFile(pHttpClient))
@@ -64,7 +66,7 @@ public:
 		}
 	}
 
-	bool respFile(HttpClients* pHttpClient)
+	bool respFile(HttpClientS* pHttpClient)
 	{
 		std::string filePath;
 

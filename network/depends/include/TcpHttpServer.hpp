@@ -2,7 +2,7 @@
 #define _doyou_io_TcpHttpServer_HPP_
 
 #include"TcpServerMgr.hpp"
-#include"HttpClients.hpp"
+#include"HttpClientS.hpp"
 
 
 namespace doyou {
@@ -11,7 +11,7 @@ namespace doyou {
 		{
 			virtual Client* makeClientObj(SOCKET cSock)
 			{
-				return new HttpClients(cSock, _nSendBuffSize, _nRecvBuffSize);
+				return new HttpClientS(cSock, _nSendBuffSize, _nRecvBuffSize);
 			}
 		};
 	}

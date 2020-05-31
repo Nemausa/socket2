@@ -1,5 +1,5 @@
-﻿#ifndef _doyou_io_HttpClient_HPP_
-#define _doyou_io_HttpClient_HPP_
+﻿#ifndef _doyou_io_HttpClientS_HPP_
+#define _doyou_io_HttpClientS_HPP_
 
 #include"Client.hpp"
 #include"SplitString.hpp"
@@ -8,7 +8,7 @@
 namespace doyou {
 	namespace io {
 		//客户端数据类型
-		class HttpClients:public Client
+		class HttpClientS:public Client
 		{
 		public:
 			enum RequestType
@@ -18,7 +18,7 @@ namespace doyou {
 				UNKOWN
 			};
 		public:
-			HttpClients(SOCKET sockfd = INVALID_SOCKET, int sendSize = SEND_BUFF_SZIE, int recvSize = RECV_BUFF_SZIE) :
+			HttpClientS(SOCKET sockfd = INVALID_SOCKET, int sendSize = SEND_BUFF_SZIE, int recvSize = RECV_BUFF_SZIE) :
 				Client(sockfd, sendSize,recvSize)
 			{
 
@@ -26,7 +26,7 @@ namespace doyou {
 
 			virtual bool hasMsg()
 			{
-				//完整的http请求一定超过20字节
+				//完整的http消息一定超过20字节
 				if (_recvBuff.dataLen() < 20)
 					return false;
 
@@ -35,12 +35,12 @@ namespace doyou {
 					resp400BadRequest();
 				return ret > 0;
 			}
-			// 0 请求的消息不完整 继续等待消息
-			// -1 不支持的请求类型
-			// -2 异常请求
+			// 0 消息不完整 继续等待消息
+			// -1 不支持的消息类型
+			// -2 异常消息
 			int checkHttpRequest()
 			{
-				//查找http请求消息结束标记
+				//查找http消息结束标记
 				char* temp = strstr(_recvBuff.data(), "\r\n\r\n");
 				//未找到表示消息还不完整
 				if (!temp)
@@ -57,7 +57,7 @@ namespace doyou {
 					temp[1] == 'E' &&
 					temp[2] == 'T')
 				{
-					_requestType = HttpClients::GET;
+					_requestType = HttpClientS::GET;
 				}
 				else if (
 					temp[0] == 'P' &&
@@ -65,7 +65,7 @@ namespace doyou {
 					temp[2] == 'S' &&
 					temp[3] == 'T')
 				{
-					_requestType = HttpClients::POST;
+					_requestType = HttpClientS::POST;
 					//POST需要计算请求体长度
 					char* p1 = strstr(_recvBuff.data(), "Content-Length: ");
 					//未找到表示格式错误
@@ -82,7 +82,7 @@ namespace doyou {
 					int n = p2 - p1;
 					//6位数 99万9999 上限100万字节， 就是1MB
 					//我们目前是靠接收缓冲区一次性接收
-					//所以POST数据上限是接收缓冲区大小减去_headerLen
+					//所以数据上限是接收缓冲区大小减去_headerLen
 					if (n > 6)
 						return -2;
 					char lenStr[7] = {};
@@ -91,7 +91,7 @@ namespace doyou {
 					//数据异常
 					if(_bodyLen < 0)
 						return -2;
-					//POST请求数据超过了缓冲区可接收长度
+					//消息数据超过了缓冲区可接收长度
 					if (_headerLen + _bodyLen > _recvBuff.buffSize())
 						return -2;
 					//消息长度>已接收的数据长度，那么数据还没接收完
@@ -99,7 +99,7 @@ namespace doyou {
 						return 0;
 				}
 				else {
-					_requestType = HttpClients::UNKOWN;
+					_requestType = HttpClientS::UNKOWN;
 					return -1;
 				}
 
@@ -107,13 +107,16 @@ namespace doyou {
 			}
 
 			
-			//解析http请求
-			//确定收到完整http请求消息的时候才能调用
+			//解析http消息
+			//确定收到完整http消息的时候才能调用
 			bool getRequestInfo()
 			{
-				//判断是否已经收到了完整请求
+				//判断是否已经收到了完整消息
 				if (_headerLen <= 0)
 					return false;
+				
+				char* pp = _recvBuff.data();
+				pp[_headerLen-1] = '\0';
 
 				SplitString ss;
 				ss.set(_recvBuff.data());
@@ -153,16 +156,19 @@ namespace doyou {
 				//请求体
 				if (_bodyLen > 0)
 				{
-					//_args_map.clear();
 					SplitUrlArgs(_recvBuff.data() + _headerLen);
 				}
-				//根据请求头，做出相应处理
+				//根据字段，做出相应处理
 				const char* str = header_getStr("Connection", "");
 				_keepalive = (0 == strcmp("keep-alive", str) || 0 == strcmp("Keep-Alive", str));
 				
 				return true;
 			}
-
+			
+			//解析url参数内容
+			//可以是html页面
+			//不过呢，我们只要能解析http api返回的json文本字符串
+			//或者其它格式的字符串数据就可以了，例如xml格式
 			void SplitUrlArgs(char* args)
 			{
 				SplitString ss;
@@ -295,17 +301,12 @@ namespace doyou {
 			int args_getInt(const char* argName, int def)
 			{
 				auto itr = _args_map.find(argName);
-				if (itr == _args_map.end())
+				if (itr != _args_map.end())
 				{
-					//CELLLog_Error("Config::getStr not find <%s>", argName);
-				}
-				else {
 					def = atoi(itr->second);
 				}
-				//CELLLog_Info("Config::getInt %s=%d", argName, def);
 				return def;
 			}
-
 
 			const char* args_getStr(const char* argName, const char* def)
 			{
@@ -314,9 +315,7 @@ namespace doyou {
 				{
 					return itr->second;
 				}
-				else {
-					return def;
-				}
+				return def;
 			}
 
 			const char* header_getStr(const char* argName, const char* def)
@@ -343,14 +342,14 @@ namespace doyou {
 			int _bodyLen = 0;
 			std::map<KeyString, char*> _header_map;
 			std::map<KeyString, char*> _args_map;
-			RequestType _requestType = HttpClients::UNKOWN;
+			RequestType _requestType = HttpClientS::UNKOWN;
 			char* _method;
 			char* _url;
 			char* _url_path;
 			char* _url_args;
 			char* _httpVersion;
-			bool _keepalive = false;
+			bool _keepalive = true;
 		};
 	}
 }
-#endif // !_doyou_io_HttpClient_HPP_
+#endif // !_doyou_io_HttpClientS_HPP_
