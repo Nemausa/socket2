@@ -106,6 +106,14 @@ public:
 		}
 	}
 
+	void post(const char* httpurl, const char* dataStr, EventCall onRespCall)
+	{
+		std::string httpurl_ = httpurl;
+		httpurl_ += '?';
+		httpurl_ += dataStr;
+		post(httpurl_.c_str(), onRespCall);
+	}
+
 	int hostname2ip(const char* hostname, const char* port)
 	{
 		if (!hostname)
@@ -383,6 +391,14 @@ int main(int argc, char *args[])
 		CELLLog_Info("recv server msg.5 :%s", pHttpClient->content());
 		httpClient.post("http://127.0.0.1:4567/add?a=6&b=1", [](HttpClientC* pHttpClient) {
 			CELLLog_Info("recv server msg.6 :%s", pHttpClient->content());
+		});
+	});
+
+
+	httpClient.post("http://127.0.0.1:4567/jsonTest","token=abc123&json={\"a\":100,\"b\":32}", [&httpClient](HttpClientC* pHttpClient) {
+		CELLLog_Info("recv json msg.1 :%s", pHttpClient->content());
+		httpClient.post("http://127.0.0.1:4567/jsonTest","token=abc123&json={\"a\":200,\"b\":78}", [&httpClient](HttpClientC* pHttpClient) {
+			CELLLog_Info("recv json msg.2 :%s", pHttpClient->content());
 		});
 	});
 	//httpClient.test();

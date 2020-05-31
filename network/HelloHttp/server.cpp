@@ -40,6 +40,22 @@ public:
 
 			pHttpClient->resp200OK(respBodyBuff, strlen(respBodyBuff));
 		}
+		else if (pHttpClient->url_compre("/jsonTest"))
+		{
+			auto tokenStr = pHttpClient->args_getStr("token", nullptr);
+			auto jsonStr = pHttpClient->args_getStr("json", "no json data");
+			if (tokenStr)
+			{
+				// 对tokenStr进行身份验证
+				pHttpClient->resp200OK(jsonStr, strlen(jsonStr));
+			}
+			else
+			{
+				auto ret = "{\"status\":\"error\"}";
+				pHttpClient->resp200OK(ret, strlen(ret));
+			}
+
+		}
 		else {
 			if (!respFile(pHttpClient))
 			{

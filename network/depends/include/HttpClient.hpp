@@ -114,8 +114,6 @@ namespace doyou {
 				//判断是否已经收到了完整请求
 				if (_headerLen <= 0)
 					return false;
-				//清除上一个消息请求的数据
-				_header_map.clear();
 
 				SplitString ss;
 				ss.set(_recvBuff.data());
@@ -214,7 +212,6 @@ namespace doyou {
 				if (!_url_args)
 					return true;
 
-				_args_map.clear();
 				SplitUrlArgs(_url_args);
 
 				return true;
@@ -227,6 +224,9 @@ namespace doyou {
 					_recvBuff.pop(_headerLen + _bodyLen);
 					_headerLen = 0;
 					_bodyLen = 0;
+					//清除本次消息请求的数据
+					_args_map.clear();
+					_header_map.clear();
 				}
 			}
 
@@ -305,6 +305,20 @@ namespace doyou {
 				//CELLLog_Info("Config::getInt %s=%d", argName, def);
 				return def;
 			}
+
+
+			const char* args_getStr(const char* argName, const char* def)
+			{
+				auto itr = _args_map.find(argName);
+				if (itr != _args_map.end())
+				{
+					return itr->second;
+				}
+				else {
+					return def;
+				}
+			}
+
 			const char* header_getStr(const char* argName, const char* def)
 			{
 				auto itr = _header_map.find(argName);
