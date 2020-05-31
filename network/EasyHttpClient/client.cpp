@@ -40,7 +40,10 @@ public:
 		if (!_eventQueue.empty())
 		{
 			Event& e = _eventQueue.front();
-			get(e.httpurl.c_str(), e.onRespCall);
+			if(e.isGet)
+				get(e.httpurl.c_str(), e.onRespCall);
+			else
+				post(e.httpurl.c_str(), e.onRespCall);
 			_eventQueue.pop();
 		}
 	}
@@ -55,13 +58,17 @@ public:
 		if (!_eventQueue.empty())
 		{
 			Event& e = _eventQueue.front();
-			get(e.httpurl.c_str(), e.onRespCall);
+			if (e.isGet)
+				get(e.httpurl.c_str(), e.onRespCall);
+			else
+				post(e.httpurl.c_str(), e.onRespCall);
 			_eventQueue.pop();
 		}
 	};
 
 	void get(const char* httpurl, EventCall onRespCall)
 	{
+		//如果正在请求中，那么将当前请求放入队列
 		if (_onRespCall)
 		{
 			Event e = { httpurl, onRespCall, true };
@@ -75,6 +82,26 @@ public:
 			if (0 == hostname2ip(_host.c_str(), _port.c_str()))
 			{
 				url2get(_host.c_str(), _path.c_str(), _args.c_str());
+			}
+		}
+	}
+
+	void post(const char* httpurl, EventCall onRespCall)
+	{
+		//如果正在请求中，那么将当前请求放入队列
+		if (_onRespCall)
+		{
+			Event e = { httpurl, onRespCall, false };
+			_eventQueue.push({ httpurl, onRespCall, false });
+		}
+		else
+		{
+			_onRespCall = onRespCall;
+
+			deatch_http_url(httpurl);
+			if (0 == hostname2ip(_host.c_str(), _port.c_str()))
+			{
+				url2post(_host.c_str(), _path.c_str(), _args.c_str());
 			}
 		}
 	}
@@ -176,6 +203,48 @@ private:
 		msg += "\r\n";
 
 		msg += "\r\n";
+
+		SendData(msg.c_str(), msg.length());
+	}
+
+	void url2post(const char* host, const char* path, const char* args)
+	{
+		std::string msg = "POST ";
+
+		if (path && strlen(path) > 0)
+			msg += path;
+		else
+			msg += "/";
+
+		msg += " HTTP/1.1\r\n";
+
+		msg += "Host: ";
+		msg += host;
+		msg += "\r\n";
+
+		msg += "Connection: keep-alive\r\n";
+		msg += "Accept: */*\r\n";
+
+		msg += "Origin: ";
+		msg += host;
+		msg += "\r\n";
+
+		int bodyLen = 0;
+		if (args)
+		{
+			bodyLen = strlen(args);
+		}
+
+		char reqBodyLen[32] = {};
+		sprintf(reqBodyLen, "Content-Length: %d\r\n", bodyLen);
+		msg += reqBodyLen;
+
+		msg += "\r\n";
+
+		if (bodyLen > 0)
+		{
+			msg += args;
+		}
 
 		SendData(msg.c_str(), msg.length());
 	}
@@ -296,23 +365,23 @@ int main(int argc, char *args[])
 	MyHttpClient httpClient;
 
 	//1
-	httpClient.get("http://192.168.1.117:4567/add?a=1&b=1", [&httpClient](HttpClientC* pHttpClient) {
+	httpClient.post("http://127.0.0.1:4567/add?a=1&b=1", [&httpClient](HttpClientC* pHttpClient) {
 		CELLLog_Info("recv server msg.1 :%s", pHttpClient->content());
-		httpClient.get("http://192.168.1.117:4567/add?a=2&b=1", [](HttpClientC* pHttpClient) {
+		httpClient.post("http://127.0.0.1:4567/add?a=2&b=1", [](HttpClientC* pHttpClient) {
 			CELLLog_Info("recv server msg.2 :%s", pHttpClient->content());
 		});
 	});
 	//2
-	httpClient.get("http://192.168.1.117:4567/add?a=3&b=1", [&httpClient](HttpClientC* pHttpClient) {
+	httpClient.post("http://127.0.0.1:4567/add?a=3&b=1", [&httpClient](HttpClientC* pHttpClient) {
 		CELLLog_Info("recv server msg.3 :%s", pHttpClient->content());
-		httpClient.get("http://192.168.1.117:4567/add?a=4&b=1", [](HttpClientC* pHttpClient) {
+		httpClient.post("http://127.0.0.1:4567/add?a=4&b=1", [](HttpClientC* pHttpClient) {
 			CELLLog_Info("recv server msg.4 :%s", pHttpClient->content());
 		});
 	});
 	//3
-	httpClient.get("http://192.168.1.117:4567/add?a=5&b=1", [&httpClient](HttpClientC* pHttpClient) {
+	httpClient.post("http://127.0.0.1:4567/add?a=5&b=1", [&httpClient](HttpClientC* pHttpClient) {
 		CELLLog_Info("recv server msg.5 :%s", pHttpClient->content());
-		httpClient.get("http://192.168.1.117:4567/add?a=6&b=1", [](HttpClientC* pHttpClient) {
+		httpClient.post("http://127.0.0.1:4567/add?a=6&b=1", [](HttpClientC* pHttpClient) {
 			CELLLog_Info("recv server msg.6 :%s", pHttpClient->content());
 		});
 	});
