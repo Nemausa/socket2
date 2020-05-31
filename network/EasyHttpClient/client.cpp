@@ -1,5 +1,6 @@
 #include"Config.hpp"
 #include "TcpHttpClient.hpp"
+#include <queue>
 using namespace doyou::io;
 
 
@@ -7,6 +8,15 @@ class MyHttpClient : public TcpHttpClient
 {
 private:
 	typedef std::function<void(HttpClientC*)> EventCall;
+
+	struct Event
+	{
+		std::string httpurl;
+		EventCall onRespCall;
+		bool isGet;
+	};
+
+	std::queue<Event> _eventQueue;
 public:
 	MyHttpClient()
 	{
@@ -15,7 +25,6 @@ public:
 public:
 	virtual void OnNetMsg(netmsg_DataHeader* header)
 	{
-		CELLLog_Info("recv server msg.");
 		HttpClientC* pHttpClient = dynamic_cast<HttpClientC*>(_pClient);
 		if (!pHttpClient)
 			return;
@@ -25,19 +34,48 @@ public:
 		if (_onRespCall)
 		{
 			_onRespCall(pHttpClient);
+			_onRespCall = nullptr;
 		}
 
-		
-
+		if (!_eventQueue.empty())
+		{
+			Event& e = _eventQueue.front();
+			get(e.httpurl.c_str(), e.onRespCall);
+			_eventQueue.pop();
+		}
 	}
+
+	virtual void OnDisconnect() {
+		if (_onRespCall)
+		{
+			_onRespCall(nullptr);
+			_onRespCall = nullptr;
+		}
+
+		if (!_eventQueue.empty())
+		{
+			Event& e = _eventQueue.front();
+			get(e.httpurl.c_str(), e.onRespCall);
+			_eventQueue.pop();
+		}
+	};
 
 	void get(const char* httpurl, EventCall onRespCall)
 	{
-		_onRespCall = onRespCall;
-		deatch_http_url(httpurl);
-		if (0 == hostname2ip(_host.c_str(), _port.c_str()))
+		if (_onRespCall)
 		{
-			url2get(_host.c_str(), _path.c_str(), _args.c_str());
+			Event e = { httpurl, onRespCall, true };
+			_eventQueue.push({ httpurl, onRespCall, true });
+		}
+		else
+		{
+			_onRespCall = onRespCall;
+
+			deatch_http_url(httpurl);
+			if (0 == hostname2ip(_host.c_str(), _port.c_str()))
+			{
+				url2get(_host.c_str(), _path.c_str(), _args.c_str());
+			}
 		}
 	}
 
@@ -59,8 +97,8 @@ public:
 		if (port, strlen(port) > 0)
 			port_ = atoi(port);
 
-		// 判断主机名和端口号不变，就不重新连接服务端
-		if ( isRun() && _hots0 == hostname && port_ == _port0)
+		//主机名和端口号不变，就不重新连接服务端
+		if (isRun() && _host0 == hostname && port_ == _port0)
 			return 0;
 
 		addrinfo hints = {};
@@ -76,6 +114,7 @@ public:
 			freeaddrinfo(pAddrList);
 			return ret;
 		}
+
 		char ipStr[256] = {};
 		for (auto pAddr = pAddrList; pAddr != nullptr; pAddr = pAddr->ai_next)
 		{
@@ -86,7 +125,7 @@ public:
 				continue;
 			}
 			else {
-				if (pAddr->ai_family == AF_INET6)
+				if(pAddr->ai_family == AF_INET6)
 					Log::Info("%s ipv6: %s", hostname, ipStr);
 				else if (pAddr->ai_family == AF_INET)
 					Log::Info("%s ipv4: %s", hostname, ipStr);
@@ -94,10 +133,10 @@ public:
 					Log::Info("%s addr: %s", hostname, ipStr);
 					continue;
 				}
-
+				
 				if (connet2ip(pAddr->ai_family, ipStr, port_))
 				{
-					_hots0 = _host;
+					_host0 = _host;
 					_port0 = port_;
 					break;
 				}
@@ -111,6 +150,7 @@ private:
 	void url2get(const char* host, const char* path, const char* args)
 	{
 		std::string msg = "GET ";
+		
 		if(path && strlen(path) > 0)
 			msg += path;
 		else
@@ -142,9 +182,9 @@ private:
 
 	bool connet2ip(int af, const char* ip, unsigned short port)
 	{
-		if (!ip || isRun())
+		if (!ip)
 			return false;
-		
+
 		if (INVALID_SOCKET == InitSocket(af, 10240, 102400))
 			return false;
 
@@ -153,7 +193,6 @@ private:
 
 		Log::Info("connet2ip(%s,%d)", ip, port);
 	}
-	
 
 	void deatch_http_url(std::string httpurl)
 	{
@@ -172,7 +211,6 @@ private:
 		else {
 			pos1 = 0;
 		}
-		
 		auto pos2 = httpurl.find('/', pos1);
 		if (pos2 != std::string::npos)
 		{
@@ -188,7 +226,7 @@ private:
 		}
 		else {
 			_host = httpurl.substr(pos1);
-		}          
+		}
 
 		pos1 = _host.find(':');
 		if (pos1 != std::string::npos)
@@ -204,7 +242,7 @@ private:
 	std::string _path;
 	std::string _args;
 	//上一次请求的域名/主机名
-	std::string _hots0;
+	std::string _host0;
 	//上一次请求的端口号
 	unsigned short _port0;
 
@@ -214,47 +252,83 @@ public:
 	void test()
 	{
 		static int i = 0;
-		if (i > 150)
-		{
-			this->get("https://www.qq.com", [this](HttpClientC* pHttpClient) {
-				CELLLog_Info("recv server msg. %d", ++i);
-				test();
-			});
-		}
-		else
-		{
-			this->get("https://www.baidu.com", [this](HttpClientC* pHttpClient) {
-				CELLLog_Info("recv server msg. %d", ++i);
-				test();
-			});
-		}
-		
-	}
+		this->get("http://192.168.1.117:4567/sub?a=5&b=2", [this](HttpClientC* pHttpClient) {
+			if (pHttpClient)
+			{
+				CELLLog_Info("recv server msg. len=%s %d| %s", 
+					pHttpClient->header_getStr("Content-Length", "?"), 
+					++i, pHttpClient->content());
+				//CELLLog_Info("%s", pHttpClient->content());
+			}
+			else
+			{
+				CELLLog_Info("server disconnect. %d", ++i);
+			}
+			test();
+		});
+		//if (i%100 > 50)
+		//{
+		//	this->get("https://www.baidu.com", [this](HttpClientC* pHttpClient) {
+		//		CELLLog_Info("recv server msg. %d", ++i);
+		//		test();
+		//	});
+		//}
+		//else {
+		//	this->get("https://www.163.com", [this](HttpClientC* pHttpClient) {
+		//		CELLLog_Info("recv server msg. %d", ++i);
+		//		test();
+		//	});
+		//}
 
+	}
 };
 
-int main(int argc, char* args[])
+int main(int argc, char *args[])
 {
 #if _WIN32 && _CONSOLE
 	system("chcp 65001");
 #endif
+	
+	//设置运行日志名称
 	Log::Instance().setLogPath("clientLog", "w", false);
 	Config::Instance().Init(argc, args);
 
-	MyHttpClient pClient;
-	char hname[128] = {};
-	gethostname(hname, 127);
+	MyHttpClient httpClient;
 
-	//pClient.get("https://www.163.com", [](HttpClientC* pHttpClient) {
-	//	auto respStr = pHttpClient->content();
-	//	CELLLog_Info("%s\n", respStr);
-	//});
-	pClient.test();
+	//1
+	httpClient.get("http://192.168.1.117:4567/add?a=1&b=1", [&httpClient](HttpClientC* pHttpClient) {
+		CELLLog_Info("recv server msg.1 :%s", pHttpClient->content());
+		httpClient.get("http://192.168.1.117:4567/add?a=2&b=1", [](HttpClientC* pHttpClient) {
+			CELLLog_Info("recv server msg.2 :%s", pHttpClient->content());
+		});
+	});
+	//2
+	httpClient.get("http://192.168.1.117:4567/add?a=3&b=1", [&httpClient](HttpClientC* pHttpClient) {
+		CELLLog_Info("recv server msg.3 :%s", pHttpClient->content());
+		httpClient.get("http://192.168.1.117:4567/add?a=4&b=1", [](HttpClientC* pHttpClient) {
+			CELLLog_Info("recv server msg.4 :%s", pHttpClient->content());
+		});
+	});
+	//3
+	httpClient.get("http://192.168.1.117:4567/add?a=5&b=1", [&httpClient](HttpClientC* pHttpClient) {
+		CELLLog_Info("recv server msg.5 :%s", pHttpClient->content());
+		httpClient.get("http://192.168.1.117:4567/add?a=6&b=1", [](HttpClientC* pHttpClient) {
+			CELLLog_Info("recv server msg.6 :%s", pHttpClient->content());
+		});
+	});
+	//httpClient.test();
 
+	//auto respStr = pHttpClient->content();
+	//CELLLog_Info("%s\n", respStr);
+
+	//httpClient.get("ipv4.dosfu.com"，callBack1);
+	//httpClient.get("ipv6.dosfu.com"，callBack2);
+	//httpClient.get("dosfu.com"，callBack3);
+	//httpClient.get("www.dosfu.com/add.php?a=1&b=2"，callBack4);
 	while (true)
 	{
-		pClient.OnRun();
+		httpClient.OnRun();
 	}
-	pClient.Close();
+	httpClient.Close();
 	return 0;
-}  
+}

@@ -96,6 +96,7 @@ namespace doyou {
 					_pClient = nullptr;
 				}
 				_isConnect = false;
+				OnDisconnect();
 			}
 
 			//处理网络消息
@@ -168,6 +169,10 @@ namespace doyou {
 			};
 
 			virtual void OnConnect() {
+
+			};
+
+			virtual void OnDisconnect() {
 
 			};
 		protected:
