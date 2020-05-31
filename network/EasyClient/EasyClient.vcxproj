@@ -162,7 +162,7 @@
     <ClInclude Include="..\depends\include\Epoll.hpp" />
     <ClInclude Include="..\depends\include\EpollServer.hpp" />
     <ClInclude Include="..\depends\include\FDSet.hpp" />
-    <ClInclude Include="..\depends\include\HttpClient.hpp" />
+    <ClInclude Include="..\depends\include\HttpClients.hpp" />
     <ClInclude Include="..\depends\include\HttpClientC.hpp" />
     <ClInclude Include="..\depends\include\HttpServer.hpp" />
     <ClInclude Include="..\depends\include\INetEvent.hpp" />

@@ -22,7 +22,7 @@ namespace doyou {
 		public:
 			virtual Client *makeClientOjb(SOCKET cSock)
 			{
-				return new HttpClient(cSock, _nSendBuffSize, _nRecvBuffSize);
+				return new HttpClients(cSock, _nSendBuffSize, _nRecvBuffSize);
 			}
 
 		};

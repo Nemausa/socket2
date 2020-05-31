@@ -4,11 +4,11 @@
 #include"Client.hpp"
 #include"SplitString.hpp"
 #include "KeyString.hpp"
-
+#include <map>
 namespace doyou {
 	namespace io {
 		//客户端数据类型
-		class HttpClient:public Client
+		class HttpClients:public Client
 		{
 		public:
 			enum RequestType
@@ -18,7 +18,7 @@ namespace doyou {
 				UNKOWN
 			};
 		public:
-			HttpClient(SOCKET sockfd = INVALID_SOCKET, int sendSize = SEND_BUFF_SZIE, int recvSize = RECV_BUFF_SZIE) :
+			HttpClients(SOCKET sockfd = INVALID_SOCKET, int sendSize = SEND_BUFF_SZIE, int recvSize = RECV_BUFF_SZIE) :
 				Client(sockfd, sendSize,recvSize)
 			{
 
@@ -57,7 +57,7 @@ namespace doyou {
 					temp[1] == 'E' &&
 					temp[2] == 'T')
 				{
-					_requestType = HttpClient::GET;
+					_requestType = HttpClients::GET;
 				}
 				else if (
 					temp[0] == 'P' &&
@@ -65,7 +65,7 @@ namespace doyou {
 					temp[2] == 'S' &&
 					temp[3] == 'T')
 				{
-					_requestType = HttpClient::POST;
+					_requestType = HttpClients::POST;
 					//POST需要计算请求体长度
 					char* p1 = strstr(_recvBuff.data(), "Content-Length: ");
 					//未找到表示格式错误
@@ -99,7 +99,7 @@ namespace doyou {
 						return 0;
 				}
 				else {
-					_requestType = HttpClient::UNKOWN;
+					_requestType = HttpClients::UNKOWN;
 					return -1;
 				}
 
@@ -343,7 +343,7 @@ namespace doyou {
 			int _bodyLen = 0;
 			std::map<KeyString, char*> _header_map;
 			std::map<KeyString, char*> _args_map;
-			RequestType _requestType = HttpClient::UNKOWN;
+			RequestType _requestType = HttpClients::UNKOWN;
 			char* _method;
 			char* _url;
 			char* _url_path;
