@@ -1,0 +1,44 @@
+<!DOCTYEP html>
+<html>
+<head>
+    <title>websocket-client</title>
+</head>
+<body>
+	<button onclick="_createWebSocket()">connect</button>
+	<button onclick="_send('hello web')">send</button>
+	<button onclick="_close()">close</button>
+	<script>
+
+		function _createWebSocket(){
+			var serverAddress = 'ws://192.168.1.103:4567/';
+			try{
+				_websocket = new WebSocket(serverAddress);
+			} catch(evt){
+				console.log("new WebSocket error:" + evt.data);
+			}
+
+			_websocket.onopen = _onOpen;
+			_websocket.onclose = _onClose;
+			_websocket.onmessage = _onMessage;
+			_websocket.onerror = _onError;
+		}
+
+		function _onOpen(evt) {
+			console.log("Connected to WebSocket server.");
+		}
+
+		function _onClose(evt) {
+			console.log("Disconnected");
+		}
+
+		function _onMessage(evt) {
+			console.log('Retrieved data from server: ' + evt.data);
+		}
+
+		function _onError(evt) {
+			console.log('Retrieved data from server: ' + evt.data);
+		}
+		
+	</script>
+</body>
+</html>

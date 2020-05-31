@@ -1,140 +1,58 @@
-
 #include"Log.hpp"
 #include"Config.hpp"
 #include"TcpHttpServer.hpp"
+#include"sha1.hpp"
+#include"base64.hpp"
 
 using namespace doyou::io;
 
-class MyServer :public TcpHttpServer
+class MyServer:public TcpHttpServer
 {
 public:
-	virtual void OnNetMsg(Server* pServer, Client* pClient, netmsg_DataHeader* header)
+	virtual void OnNetMsgHttp(Server* pServer, HttpClientS* pHttpClient)
 	{
-		TcpServer::OnNetMsg(pServer, pClient, header);
-		HttpClientS* pHttpClient = dynamic_cast<HttpClientS*>(pClient);
-		if (!pHttpClient)
+		auto strUpgrade = pHttpClient->header_getStr("Upgrade", "");
+		if (0 != strcmp(strUpgrade, "websocket"))
+		{
+			CELLLog_Error("not found Upgrade:websocket");
 			return;
+		}
 
-		if (!pHttpClient->getRequestInfo())
+		auto cKey = pHttpClient->header_getStr("Sec-WebSocket-Key", nullptr);
+		if (!cKey)
+		{
+			CELLLog_Error("not found Sec-WebSocket-Key");
 			return;
-
-		if (pHttpClient->url_compre("/add"))
-		{
-			int a = pHttpClient->args_getInt("a", 0);
-			int b = pHttpClient->args_getInt("b", 0);
-			int c = a + b;
-
-			char respBodyBuff[32] = {};
-			sprintf(respBodyBuff, "a+b=%d", c);
-
-			pHttpClient->resp200OK(respBodyBuff, strlen(respBodyBuff));
 		}
-		else if (pHttpClient->url_compre("/sub"))
-		{
-			int a = pHttpClient->args_getInt("a", 0);
-			int b = pHttpClient->args_getInt("b", 0);
-			int c = a - b;
 
-			char respBodyBuff[32] = {};
-			sprintf(respBodyBuff, "a-b=%d", c);
+		std::string sKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-			pHttpClient->resp200OK(respBodyBuff, strlen(respBodyBuff));
-		}
-		else if (pHttpClient->url_compre("/jsonTest"))
-		{
-			auto tokenStr = pHttpClient->args_getStr("token", nullptr);
-			if (tokenStr)
-			{
-				//¶ÔtokenStr½øĞĞÉí·İÑéÖ¤
-				auto jsonStr = pHttpClient->args_getStr("json", "no json data");
-				//Ê¹ÓÃµÚÈı·½json¿â½âÎöjsonStr
-				//×ö³öÏàÓ¦´¦Àí
-				//·´À¡½á¹û
-				pHttpClient->resp200OK(jsonStr, strlen(jsonStr));
-			}
-			else
-			{
-				auto ret = "{\"status\":\"error\"}";
-				pHttpClient->resp200OK(ret, strlen(ret));
-			}
-		}
-		else {
-			if (!respFile(pHttpClient))
-			{
-				pHttpClient->resp404NotFound();
-			}
-		}
+		sKey = cKey + sKey;
+
+		unsigned char strSha1[20] = {};
+		SHA1_String((const unsigned char*)sKey.c_str(), sKey.length(), strSha1);
+
+		std::string sKeyAccept = Base64Encode(strSha1, 20);
+
+
+		char resp[256] = {};
+		strcat(resp, "HTTP/1.1 101 Switching Protocols\r\n");
+		strcat(resp, "Connection: Upgrade\r\n");
+		strcat(resp, "Upgrade: websocket\r\n");
+		strcat(resp, "Sec-WebSocket-Accept: ");
+		strcat(resp, sKeyAccept.c_str());
+		strcat(resp, "\r\n\r\n");
+
+		pHttpClient->SendData(resp, strlen(resp));
 	}
 
-	bool respFile(HttpClientS* pHttpClient)
-	{
-		std::string filePath;
-
-		if (pHttpClient->url_compre("/"))
-		{
-			filePath = _wwwRoot + pHttpClient->url() + _indexPage;
-		}
-		else {
-			filePath = _wwwRoot + pHttpClient->url();
-		}
-
-		FILE * file = fopen(filePath.c_str(), "rb");
-		if (!file)
-			return false;
-
-		//»ñÈ¡ÎÄ¼ş´óĞ¡
-		fseek(file, 0, SEEK_END);
-		auto bytesize = ftell(file);
-		rewind(file);
-
-		//·¢ËÍ»º³åÇøÊÇ·ñÄÜĞ´ÈëÕâÃ´¶àÊı¾İ
-		if (!pHttpClient->canWrite(bytesize))
-		{
-			CELLLog_Warring("!pHttpClient->canWrite(bytesize), url=%s", filePath.c_str());
-			fclose(file);
-			return false;
-		}
-
-		//¶ÁÈ¡
-		char* buff = new char[bytesize];
-		auto readsize = fread(buff, 1, bytesize, file);
-		if (readsize != bytesize)
-		{
-			CELLLog_Warring("readsize != bytesize, url=%s", filePath.c_str());
-			//ÊÍ·ÅÄÚ´æ
-			delete[] buff;
-			//¹Ø±ÕÎÄ¼ş
-			fclose(file);
-			return false;
-		}
-
-		pHttpClient->resp200OK(buff, readsize);
-
-		//ÊÍ·ÅÄÚ´æ
-		delete[] buff;
-		//¹Ø±ÕÎÄ¼ş
-		fclose(file);
-
-		return true;
-	}
-
-	void wwwRoot(const char* www)
-	{
-		_wwwRoot = www;
-	}
-
-	void indexPage(const char* index)
-	{
-		_indexPage = index;
-	}
 private:
-	std::string _wwwRoot;
-	std::string _indexPage;
+
 };
 
 int main(int argc, char* args[])
 {
-	//ÉèÖÃÔËĞĞÈÕÖ¾Ãû³Æ
+	//è®¾ç½®è¿è¡Œæ—¥å¿—åç§°
 	Log::Instance().setLogPath("serverLog", "w", false);
 	Config::Instance().Init(argc, args);
 
@@ -158,16 +76,11 @@ int main(int argc, char* args[])
 		server.InitSocket();
 	}
 
-	const char* wwwroot = Config::Instance().getStr("wwwroot", "D:/git/cppnet/www");
-	const char* indexpage = Config::Instance().getStr("indexpage", "");
-	server.wwwRoot(wwwroot);
-	server.indexPage(indexpage);
-
 	server.Bind(strIP, nPort);
 	server.Listen(SOMAXCONN);
 	server.Start(nThread);
 
-	//ÔÚÖ÷Ïß³ÌÖĞµÈ´ıÓÃ»§ÊäÈëÃüÁî
+	//åœ¨ä¸»çº¿ç¨‹ä¸­ç­‰å¾…ç”¨æˆ·è¾“å…¥å‘½ä»¤
 	while (true)
 	{
 		char cmdBuf[256] = {};
