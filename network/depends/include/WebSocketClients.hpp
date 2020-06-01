@@ -76,11 +76,14 @@ namespace doyou {
 				std::string sKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 				sKey = cKey + sKey;
+				
+				gloox::SHA sha1;
+				sha1.feed(sKey);
+				std::string  s1 = sha1.binary();
+				//unsigned char strSha1[20] = {};
+				//SHA1_String((const unsigned char*)sKey.c_str(), sKey.length(), strSha1);
 
-				unsigned char strSha1[20] = {};
-				SHA1_String((const unsigned char*)sKey.c_str(), sKey.length(), strSha1);
-
-				std::string sKeyAccept = Base64Encode(strSha1, 20);
+				std::string sKeyAccept = Base64Encode((const unsigned char*)s1.c_str(), s1.length());
 
 
 				char resp[256] = {};
@@ -184,10 +187,10 @@ namespace doyou {
 				}
 				else if (_wsh.len0 == 127)
 				{
-					_wsh.len |= data[2] << 56;
-					_wsh.len |= data[3] << 48;
-					_wsh.len |= data[4] << 40;
-					_wsh.len |= data[5] << 32;
+					_wsh.len |= (uint64_t)data[2] << 56;
+					_wsh.len |= (uint64_t)data[3] << 48;
+					_wsh.len |= (uint64_t)data[4] << 40;
+					_wsh.len |= (uint64_t)data[5] << 32;
 					_wsh.len |= data[6] << 24;
 					_wsh.len |= data[7] << 16;
 					_wsh.len |= data[8] << 8;
