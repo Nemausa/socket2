@@ -50,9 +50,6 @@
     <ClInclude Include="..\depends\include\HttpClientC.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\depends\include\HttpClients.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\depends\include\INetEvent.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -140,7 +137,10 @@
     <ClInclude Include="..\depends\include\TcpWebSocketServer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\depends\include\WebSocketClients.hpp">
+    <ClInclude Include="..\depends\include\WebSocketClientS.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\include\HttpClientS.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

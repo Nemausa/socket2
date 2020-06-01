@@ -94,6 +94,122 @@ namespace doyou {
 
 				return true;
 			}
+
+			virtual bool hasMsg()
+			{
+				if (clientState_join == _clientState)
+				{
+					return HttpClientS::hasMsg();
+				}
+				else if (clientState_run == _clientState)
+				{
+					return hasMsgWS();
+				}
+
+				return false;
+			}
+
+			virtual void pop_front_msg()
+			{	
+				HttpClientS::pop_front_msg();
+				if (_wsh.header_size > 0)
+				{
+					_recvBuff.pop(_wsh.header_size + _wsh.len);
+					_wsh.header_size = 0;
+					_wsh.len = 0;
+					_wsh.len0 = 0;
+				}
+				
+			}
+
+			virtual bool hasMsgWS()
+			{
+				// 完整的websocket消息一定不小于2字节
+				if (_recvBuff.dataLen() < 2)
+					return false;
+
+				const uint8_t *data = (const uint8_t *)_recvBuff.data();
+				_wsh.header_size = 2;
+				_wsh.fin = (data[0] & 0x80) == 0x80;
+
+				// 
+				_wsh.mask = (data[1] & 0x80) == 0x80;
+
+
+				if (_wsh.mask)
+				{
+					_wsh.header_size += 4;
+				}
+			
+				if(!_wsh.mask || opcode_CLOSE == _wsh.opcode)
+				{
+					onClose();
+					return true;
+				}
+				
+				_wsh.len0 = (data[1] & 0x7F);
+				if (_wsh.len0 == 126)
+				{
+					_wsh.header_size += 2;
+				}
+				else if (_wsh.len0 == 127)
+				{
+					_wsh.header_size += 8;
+				}
+
+				if (_recvBuff.dataLen() < _wsh.header_size)
+					return false;
+
+				if (_wsh.len0 == 126)
+				{
+					_wsh.len |= data[2] << 8;
+					_wsh.len |= data[3] << 0;
+				}
+				else if(_wsh.len0 == 127)
+				{
+					_wsh.len |= data[2] << 56;
+					_wsh.len |= data[3] << 48;
+					_wsh.len |= data[4] << 40;
+					_wsh.len |= data[5] << 32;
+					_wsh.len |= data[6] << 24;
+					_wsh.len |= data[7] << 16;
+					_wsh.len |= data[8] << 8;
+					_wsh.len |= data[9] << 0;
+				}
+				else
+				{
+					_wsh.len = _wsh.len0;
+				}
+
+				// 判断数据收完没有
+				if (_recvBuff.dataLen() < _wsh.header_size + _wsh.len)
+					return false;
+
+				return true;
+			}
+
+			char* fetch_data()
+			{
+				char *rbuf = _recvBuff.data() + _wsh.header_size;
+				//将数据转化为无符号整数数据
+				if (_wsh.mask)
+				{
+					const uint8_t *data = (const uint8_t*)_recvBuff.data();
+					_wsh.masking_key[0] = data[_wsh.header_size - 4];
+					_wsh.masking_key[1] = data[_wsh.header_size - 3];
+					_wsh.masking_key[2] = data[_wsh.header_size - 2];
+					_wsh.masking_key[3] = data[_wsh.header_size - 1];
+				}
+
+				for (uint64_t i = 0; i < _wsh.len; ++i)
+				{
+					rbuf[i] ^= _wsh.masking_key[i&0x3];
+				}
+				
+				return rbuf;
+			}
+		private:
+			WebSocketHeader _wsh = {};
 		};
 	}
 }

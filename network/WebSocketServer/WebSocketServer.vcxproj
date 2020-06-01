@@ -167,7 +167,7 @@
     <ClInclude Include="..\depends\include\EpollServer.hpp" />
     <ClInclude Include="..\depends\include\FDSet.hpp" />
     <ClInclude Include="..\depends\include\HttpClientC.hpp" />
-    <ClInclude Include="..\depends\include\HttpClients.hpp" />
+    <ClInclude Include="..\depends\include\HttpClientS.hpp" />
     <ClInclude Include="..\depends\include\INetEvent.hpp" />
     <ClInclude Include="..\depends\include\Iocp.hpp" />
     <ClInclude Include="..\depends\include\IocpServer.hpp" />
@@ -197,7 +197,7 @@
     <ClInclude Include="..\depends\include\TcpWebSocketServer.hpp" />
     <ClInclude Include="..\depends\include\Thread.hpp" />
     <ClInclude Include="..\depends\include\Timestamp.hpp" />
-    <ClInclude Include="..\depends\include\WebSocketClients.hpp" />
+    <ClInclude Include="..\depends\include\WebSocketClientS.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

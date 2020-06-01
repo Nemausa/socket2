@@ -20,12 +20,23 @@ namespace doyou {
 				if (!pWSClient)
 					return;
 
-				if (!pWSClient->getRequestInfo())
-					return;
-
 				pWSClient->resetDTHeart();
 
-				OnNetMsgWS(pServer, pWSClient);
+				if (clientState_join == pWSClient->state())
+				{	
+					//握手
+					if (!pWSClient->getRequestInfo())
+						return;
+
+					if (pWSClient->handshake())
+						pWSClient->state(clientState_run);
+					else
+						pWSClient->onClose();
+				}
+				else if(clientState_run == pWSClient->state()) {
+					//处理数据帧
+					OnNetMsgWS(pServer, pWSClient);
+				}
 			}
 		public:
 			virtual void OnNetMsgWS(Server* pServer, WebSocketClientS* pWSClient)

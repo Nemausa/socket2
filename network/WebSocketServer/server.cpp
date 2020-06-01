@@ -9,16 +9,8 @@ class MyServer:public TcpWebSocketServer
 public:
 	virtual void OnNetMsgWS(Server* pServer, WebSocketClientS* pWSClient)
 	{
-		if (clientState_join == pWSClient->state())
-		{	//握手
-			if (pWSClient->handshake())
-				pWSClient->state(clientState_run);
-			else
-				pWSClient->state(clientState_close);
-		}
-		else {
-			//处理数据帧
-		}
+		auto data = pWSClient->fetch_data();
+		CELLLog_Info("websocket client say: %s", data);
 	}
 private:
 

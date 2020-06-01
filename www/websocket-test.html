@@ -1,11 +1,10 @@
-<!DOCTYEP html>
-<html>
-<head>
+
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
     <title>websocket-client</title>
 </head>
 <body>
 	<button onclick="_createWebSocket()">connect</button>
-	<button onclick="_send('hello web')">send</button>
+	<button onclick="_send('')">send</button>
 	<button onclick="_close()">close</button>
 	<script>
 
@@ -40,6 +39,8 @@
 		}
 		
 		function _send(msg) {
+			for(i=0;i<100;i++)
+				msg+='-hello web';
 			if(_websocket.readyState == WebSocket.OPEN) {
 				_websocket.send(msg);
 			}else {
@@ -52,5 +53,5 @@
 		}
 
 	</script>
-</body>
-</html>
+
+</body></html>
