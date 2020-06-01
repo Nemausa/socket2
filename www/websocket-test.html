@@ -39,7 +39,7 @@
 		}
 		
 		function _send(msg) {
-			for(i=0;i<100;i++)
+			for(i=0;i<65000;i++)
 				msg+='-hello web';
 			if(_websocket.readyState == WebSocket.OPEN) {
 				_websocket.send(msg);

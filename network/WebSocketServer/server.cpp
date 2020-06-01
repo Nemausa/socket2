@@ -10,7 +10,16 @@ public:
 	virtual void OnNetMsgWS(Server* pServer, WebSocketClientS* pWSClient)
 	{
 		auto data = pWSClient->fetch_data();
-		CELLLog_Info("websocket client say: %s", data);
+		//CELLLog_Info("websocket client say: %s", data);
+		WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+		pWSClient->writeText(data, wsh.len);
+		//std::string resp;
+		//for (size_t i = 0; i < 130; i++)
+		//{
+		//	resp += "HelloHello";
+		//}
+		//resp += "=";
+		//pWSClient->writeText(resp.c_str(), resp.length());
 	}
 private:
 
