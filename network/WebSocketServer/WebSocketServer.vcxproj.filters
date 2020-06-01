@@ -137,5 +137,11 @@
     <ClInclude Include="..\depends\include\Timestamp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\depends\include\TcpWebSocketServer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\include\WebSocketClients.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

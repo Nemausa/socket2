@@ -36,9 +36,21 @@
 		}
 
 		function _onError(evt) {
-			console.log('Retrieved data from server: ' + evt.data);
+			console.log('Error occured: ' + evt.data);
 		}
 		
+		function _send(msg) {
+			if(_websocket.readyState == WebSocket.OPEN) {
+				_websocket.send(msg);
+			}else {
+				console.log("send failed. websocket not open. please check.")
+			}
+		}
+
+		function _close() {
+			_websocket.close();
+		}
+
 	</script>
 </body>
 </html>
