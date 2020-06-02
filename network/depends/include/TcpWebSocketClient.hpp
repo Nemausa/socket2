@@ -231,7 +231,8 @@ namespace doyou {
 				if (SOCKET_ERROR == Connect(ip, port))
 					return false;
 
-				Log::Info("connet2ip(%s,%d)", ip, port);
+				CELLLog_Info("connet2ip(%s,%d)", ip, port);
+				return true;
 			}
 
 			void deatch_http_url(std::string httpurl)

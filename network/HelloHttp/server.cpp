@@ -8,16 +8,8 @@ using namespace doyou::io;
 class MyServer:public TcpHttpServer
 {
 public:
-	virtual void OnNetMsg(Server* pServer, Client* pClient, netmsg_DataHeader* header)
+	virtual void OnNetMsgHttp(Server* pServer, HttpClientS* pHttpClient)
 	{
-		TcpServer::OnNetMsg(pServer, pClient, header);
-		HttpClientS* pHttpClient = dynamic_cast<HttpClientS*>(pClient);
-		if (!pHttpClient)
-			return;
-
-		if(!pHttpClient->getRequestInfo())
-			return;
-
 		if (pHttpClient->url_compre("/add"))
 		{
 			int a = pHttpClient->args_getInt("a", 0);

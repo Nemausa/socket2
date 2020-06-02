@@ -14,7 +14,7 @@ int main(int argc, char *args[])
 	Config::Instance().Init(argc, args);
 	
 	TcpWebSocketClient wsClient;
-	wsClient.connect("ws://192.168.1.103:4567/");
+	wsClient.connect("ws://192.168.1.128:4567/");
 
 	while (true)
 	{

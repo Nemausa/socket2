@@ -23,11 +23,10 @@ namespace doyou {
 		private:
 			typedef std::function<void(HttpClientC*)> EventCall;
 
-			struct Event
-			{
+			struct Event {
 				std::string httpurl;
-				EventCall onRespCall;
-				bool isGet;
+				EventCall onRespCall = nullptr;
+				bool isGet = true;
 			};
 
 			std::queue<Event> _eventQueue;
@@ -57,21 +56,20 @@ namespace doyou {
 				}
 
 				nextRequest();
-				
 			};
-
-
 
 			void get(const char* httpurl, EventCall onRespCall)
 			{
 				//如果正在请求中，那么将当前请求放入队列
 				if (_onRespCall)
 				{
-					Event e = { httpurl, onRespCall, true };
-					_eventQueue.push({ httpurl, onRespCall, true });
+					Event e;
+					e.httpurl = httpurl;
+					e.onRespCall = onRespCall;
+					e.isGet = true;
+					_eventQueue.push(e);
 				}
-				else
-				{
+				else {
 					_onRespCall = onRespCall;
 
 					deatch_http_url(httpurl);
@@ -87,11 +85,13 @@ namespace doyou {
 				//如果正在请求中，那么将当前请求放入队列
 				if (_onRespCall)
 				{
-					Event e = { httpurl, onRespCall, false };
-					_eventQueue.push({ httpurl, onRespCall, false });
+					Event e;
+					e.httpurl = httpurl;
+					e.onRespCall = onRespCall;
+					e.isGet = false;
+					_eventQueue.push(e);
 				}
-				else
-				{
+				else {
 					_onRespCall = onRespCall;
 
 					deatch_http_url(httpurl);
@@ -278,7 +278,8 @@ namespace doyou {
 				if (SOCKET_ERROR == Connect(ip, port))
 					return false;
 
-				Log::Info("connet2ip(%s,%d)", ip, port);
+				CELLLog_Info("connet2ip(%s,%d)", ip, port);
+				return true;
 			}
 
 			void deatch_http_url(std::string httpurl)
