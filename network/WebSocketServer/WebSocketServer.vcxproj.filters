@@ -146,5 +146,11 @@
     <ClInclude Include="..\depends\include\TcpWebSocketClient.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\depends\include\WebSocketClientC.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\include\WebSocketObj.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

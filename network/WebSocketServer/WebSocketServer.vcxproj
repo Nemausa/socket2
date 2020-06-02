@@ -198,7 +198,9 @@
     <ClInclude Include="..\depends\include\TcpWebSocketServer.hpp" />
     <ClInclude Include="..\depends\include\Thread.hpp" />
     <ClInclude Include="..\depends\include\Timestamp.hpp" />
+    <ClInclude Include="..\depends\include\WebSocketClientC.hpp" />
     <ClInclude Include="..\depends\include\WebSocketClientS.hpp" />
+    <ClInclude Include="..\depends\include\WebSocketObj.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

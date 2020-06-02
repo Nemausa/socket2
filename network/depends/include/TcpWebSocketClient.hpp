@@ -2,7 +2,7 @@
 #define _doyou_io_TcpWebSocketClient_HPP_
 
 #include"TcpClientMgr.hpp"
-#include"HttpClientC.hpp"
+#include"WebSocketClientC.hpp"
 
 #include"sha1.hpp"
 #include"base64.hpp"
@@ -21,49 +21,60 @@ namespace doyou {
 		protected:
 			virtual Client* makeClientObj(SOCKET cSock, int sendSize, int recvSize)
 			{
-				return new HttpClientC(cSock, sendSize, recvSize);
+				return new WebSocketClientC(cSock, sendSize, recvSize);
 			}
 		public:
 			virtual void OnNetMsg(netmsg_DataHeader* header)
 			{
-				HttpClientC* pHttpClient = dynamic_cast<HttpClientC*>(_pClient);
-				if (!pHttpClient)
+				WebSocketClientC* pWSClient = dynamic_cast<WebSocketClientC*>(_pClient);
+				if (!pWSClient)
 					return;
 
-				if (!pHttpClient->getResponseInfo())
-					return;
-
-				if (clientState_join == pHttpClient->state())
+				if (clientState_join == pWSClient->state())
 				{
+					if (!pWSClient->getResponseInfo())
+						return;
+
 					if (handshake())
 					{
 						CELLLog_Info("WebSocketClientC::handshake, Good.");
-						pHttpClient->state(clientState_run);
+						pWSClient->state(clientState_run);
+
+						std::string msg = "bu hao.";
+						for (int i = 0; i < 10; i++)
+							msg +="-hello web";
+						msg += "===";
+						pWSClient->writeText(msg.c_str(), msg.length());
 					}
 					else {
 						CELLLog_Warring("WebSocketClientC::handshake, Bad.");
+						pWSClient->onClose();
 					}
 				}
-				else if (clientState_run == pHttpClient->state()) {
+				else if (clientState_run == pWSClient->state()) {
+					auto data = pWSClient->fetch_data();
+					//CELLLog_Info("websocket server say: %s", data);
 
+					WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+					pWSClient->writeText(data, wsh.len);
 				}
 			}
 
 			bool handshake()
 			{
 
-				HttpClientC* pHttpClient = dynamic_cast<HttpClientC*>(_pClient);
-				if (!pHttpClient)
+				WebSocketClientC* pWSClient = dynamic_cast<WebSocketClientC*>(_pClient);
+				if (!pWSClient)
 					return false;
 
-				auto strUpgrade = pHttpClient->header_getStr("Upgrade", "");
+				auto strUpgrade = pWSClient->header_getStr("Upgrade", "");
 				if (0 != strcmp(strUpgrade, "websocket"))
 				{
 					CELLLog_Error("WebSocketClientC::handshake, not found Upgrade:websocket");
 					return false;
 				}
 
-				auto sKeyAccept = pHttpClient->header_getStr("Sec-WebSocket-Accept", nullptr);
+				auto sKeyAccept = pWSClient->header_getStr("Sec-WebSocket-Accept", nullptr);
 				if (!sKeyAccept)
 				{
 					CELLLog_Error("WebSocketClientC::handshake, not found Sec-WebSocket-Key");
@@ -214,7 +225,7 @@ namespace doyou {
 				if (!ip)
 					return false;
 
-				if (INVALID_SOCKET == InitSocket(af, 10240, 102400))
+				if (INVALID_SOCKET == InitSocket(af, 202400, 202400))
 					return false;
 
 				if (SOCKET_ERROR == Connect(ip, port))
