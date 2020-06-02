@@ -34,8 +34,15 @@ namespace doyou {
 						pWSClient->onClose();
 				}
 				else if(clientState_run == pWSClient->state()) {
-					//处理数据帧
-					OnNetMsgWS(pServer, pWSClient);
+					WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+					if (wsh.opcode == opcode_PING)
+					{
+						pWSClient->pong();
+					}
+					else {
+						//处理数据帧
+						OnNetMsgWS(pServer, pWSClient);
+					}
 				}
 			}
 		public:

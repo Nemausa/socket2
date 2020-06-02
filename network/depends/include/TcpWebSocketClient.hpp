@@ -23,6 +23,14 @@ namespace doyou {
 			{
 				return new WebSocketClientC(cSock, sendSize, recvSize);
 			}
+
+			virtual void OnDisconnect() {
+				if (onclose)
+				{
+					WebSocketClientC* pWSClient = dynamic_cast<WebSocketClientC*>(_pClient);
+					onclose(pWSClient);
+				}
+			};
 		public:
 			virtual void OnNetMsg(netmsg_DataHeader* header)
 			{
@@ -44,19 +52,29 @@ namespace doyou {
 						{
 							onopen(pWSClient);
 						}
-						
 					}
 					else {
 						CELLLog_Warring("WebSocketClientC::handshake, Bad.");
 						pWSClient->onClose();
+						if (onerror)
+						{
+							onerror(pWSClient);
+						}
 					}
 				}
 				else if (clientState_run == pWSClient->state()) {
-					if (onmessage)
+					WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+					if (wsh.opcode == opcode_PING)
 					{
-						onmessage(pWSClient);
+						pWSClient->pong();
 					}
-					
+					else {
+						//处理数据帧
+						if (onmessage)
+						{
+							onmessage(pWSClient);
+						}
+					}
 				}
 			}
 

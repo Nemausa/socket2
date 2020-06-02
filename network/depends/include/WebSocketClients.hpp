@@ -112,7 +112,9 @@ namespace doyou {
 					_wsh.header_size += 4;
 				}
 				//
-				if (!_wsh.mask || opcode_CLOSE == _wsh.opcode)
+
+				if ((!_wsh.mask && opcode_PING != _wsh.opcode && opcode_PONG != _wsh.opcode)
+					|| opcode_CLOSE == _wsh.opcode)
 				{
 					onClose();
 					return true;
@@ -260,6 +262,16 @@ namespace doyou {
 					}
 				}
 				return ret;
+			}
+
+			int ping()
+			{
+				return writeHeader(opcode_PING, 0);
+			}
+
+			int pong()
+			{
+				return writeHeader(opcode_PONG, 0);
 			}
 
 			WebSocketHeader& WebsocketHeader()

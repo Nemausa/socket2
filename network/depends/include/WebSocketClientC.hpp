@@ -240,6 +240,16 @@ namespace doyou {
 				return ret;
 			}
 
+			int ping()
+			{
+				return writeHeader(opcode_PING, 0, false, 0);
+			}
+
+			int pong()
+			{
+				return writeHeader(opcode_PONG, 0, false, 0);
+			}
+
 			WebSocketHeader& WebsocketHeader()
 			{
 				return _wsh;

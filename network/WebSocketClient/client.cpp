@@ -9,7 +9,7 @@ int main(int argc, char *args[])
 	system("chcp 65001");
 #endif
 
-	//设置运行日志名称
+	//璁剧疆杩愯鏃ュ織鍚嶇О
 	Log::Instance().setLogPath("clientLog", "w", false);
 	Config::Instance().Init(argc, args);
 	
@@ -22,21 +22,42 @@ int main(int argc, char *args[])
 			msg += "-hello web";
 		msg += "===";
 		pWSClient->writeText(msg.c_str(), msg.length());
+
+		pWSClient->ping();
 	};
 
-	wsClient.onmessage = [](WebSocketClientC* pWSClient)
+	wsClient.onmessage = [&wsClient](WebSocketClientC* pWSClient)
 	{
+		WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+		if (wsh.opcode == opcode_PONG)
+		{
+			CELLLog_Info("websocket server say: PONG");
+			return;
+		}
+
 		auto data = pWSClient->fetch_data();
 		CELLLog_Info("websocket server say: %s", data);
-		/*WebSocketHeader& wsh = pWSClient->WebsocketHeader();
-		pWSClient->writeText(data, wsh.len);*/
+		
+		//pWSClient->writeText(data, wsh.len);
+
+		//pWSClient->onClose();
 	};
 
-	while (true)
+	wsClient.onclose = [](WebSocketClientC* pWSClient)
+	{
+		CELLLog_Info("websocket client onclose!");
+	};
+
+	wsClient.onerror = [](WebSocketClientC* pWSClient)
+	{
+		CELLLog_Info("websocket client onerror!");
+	};
+
+	while (wsClient.isRun())
 	{
 		wsClient.OnRun(1);
+		//httpClient1.OnRun(1);
 	}
-
 	wsClient.Close();
 	return 0;
 }

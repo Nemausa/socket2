@@ -94,9 +94,10 @@ namespace doyou {
 				{
 					delete _pClient;
 					_pClient = nullptr;
+
+					_isConnect = false;
+					OnDisconnect();
 				}
-				_isConnect = false;
-				OnDisconnect();
 			}
 
 			//处理网络消息
@@ -131,6 +132,13 @@ namespace doyou {
 				{
 					//处理网络消息
 					OnNetMsg(_pClient->front_msg());
+
+					if (_pClient->isClose())
+					{
+						Close();
+						return;
+					}
+
 					//移除消息队列（缓冲区）最前的一条数据
 					_pClient->pop_front_msg();
 				}

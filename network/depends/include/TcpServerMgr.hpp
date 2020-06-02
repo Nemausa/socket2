@@ -2,8 +2,7 @@
 #define _TcpServerMgr_hpp_
 
 #if _WIN32
-	//#include"TcpIocpServer.hpp"
-	#include"TcpSelectServer.hpp"
+	#include"TcpIocpServer.hpp"
 #elif __linux__
 	#include"TcpEpollServer.hpp"
 #else
@@ -13,8 +12,7 @@
 namespace doyou {
 	namespace io {
 #if _WIN32
-		//typedef TcpIocpServer TcpServerMgr;
-		typedef TcpSelectServer TcpServerMgr;
+		typedef TcpIocpServer TcpServerMgr;
 #elif __linux__
 		typedef TcpEpollServer TcpServerMgr;
 #else

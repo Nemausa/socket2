@@ -79,39 +79,55 @@ int main(int argc, char *args[])
 	Log::Instance().setLogPath("clientLog", "w", false);
 	Config::Instance().Init(argc, args);
 
-	MyHttpClient httpClient1;
-	httpClient1.test();
-
+	//MyHttpClient httpClient;
+	//httpClient.test();
+	
 	TcpHttpClient httpClient;
 	//1
-	httpClient.post("http://127.0.0.1:4567/add?a=1&b=1", [&httpClient](HttpClientC* pHttpClient) {
+	httpClient.get("http://127.0.0.1:4567/add?a=1&b=1", [&httpClient](HttpClientC* pHttpClient) {
+		if (!pHttpClient)
+			return;
 		CELLLog_Info("recv server msg.1 :%s", pHttpClient->content());
-		httpClient.post("http://127.0.0.1:4567/add?a=2&b=1", [](HttpClientC* pHttpClient) {
+		httpClient.get("http://127.0.0.1:4567/add?a=2&b=1", [](HttpClientC* pHttpClient) {
+			if (!pHttpClient)
+				return;
 			CELLLog_Info("recv server msg.2 :%s", pHttpClient->content());
 		});
 	});
 	//2
 	httpClient.post("http://127.0.0.1:4567/add?a=3&b=1", [&httpClient](HttpClientC* pHttpClient) {
+		if (!pHttpClient)
+			return;
 		CELLLog_Info("recv server msg.3 :%s", pHttpClient->content());
 		httpClient.post("http://127.0.0.1:4567/add?a=4&b=1", [](HttpClientC* pHttpClient) {
+			if (!pHttpClient)
+				return;
 			CELLLog_Info("recv server msg.4 :%s", pHttpClient->content());
 		});
 	});
 	//3
 	httpClient.post("http://127.0.0.1:4567/add?a=5&b=1", [&httpClient](HttpClientC* pHttpClient) {
+		if (!pHttpClient)
+			return;
 		CELLLog_Info("recv server msg.5 :%s", pHttpClient->content());
-		httpClient.post("http://127.0.0.1:4567/add?a=6&b=1", [](HttpClientC* pHttpClient) {
+		httpClient.get("http://127.0.0.1:4567/add?a=6&b=1", [](HttpClientC* pHttpClient) {
+			if (!pHttpClient)
+				return;
 			CELLLog_Info("recv server msg.6 :%s", pHttpClient->content());
 		});
 	});
 
-
-	httpClient.post("http://127.0.0.1:4567/jsonTest","token=abc123&json={\"a\":100,\"b\":32}", [&httpClient](HttpClientC* pHttpClient) {
+	httpClient.post("http://127.0.0.1:4567/jsonTest", "token=abc123&json={\"a\":100,\"b\":32}", [&httpClient](HttpClientC* pHttpClient) {
+		if (!pHttpClient)
+			return;
 		CELLLog_Info("recv json msg.1 :%s", pHttpClient->content());
-		httpClient.post("http://127.0.0.1:4567/jsonTest","token=abc123&json={\"a\":200,\"b\":78}", [&httpClient](HttpClientC* pHttpClient) {
+		httpClient.post("http://127.0.0.1:4567/jsonTest?token=abc123&json={\"a\":200,\"b\":78}", [](HttpClientC* pHttpClient) {
+			if (!pHttpClient)
+				return;
 			CELLLog_Info("recv json msg.2 :%s", pHttpClient->content());
 		});
 	});
+	
 
 	//httpClient.get("www.163.com"£¬callBack1);
 	//httpClient.get("www.baidu.com"£¬callBack2);
@@ -121,7 +137,7 @@ int main(int argc, char *args[])
 	while (true)
 	{
 		httpClient.OnRun(1);
-		httpClient1.OnRun(1);
+		//httpClient1.OnRun(1);
 	}
 	httpClient.Close();
 	return 0;

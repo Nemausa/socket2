@@ -40,7 +40,7 @@ namespace doyou {
 				//未找到表示消息还不完整
 				if (!temp)
 					return 0;
-				CELLLog_Info(_recvBuff.data());
+				//CELLLog_Info(_recvBuff.data());
 				//偏移到消息结束位置
 				//4=strlen("\r\n\r\n")
 				temp += 4;
@@ -146,7 +146,7 @@ namespace doyou {
 				//根据字段，做出相应处理
 				const char* str = header_getStr("Connection", "");
 				_keepalive = (0 == strcmp("keep-alive", str) || 0 == strcmp("Keep-Alive", str) || 0 == strcmp("Upgrade", str));
-				
+				//_keepalive = false;
 				return true;
 			}
 			
@@ -231,7 +231,7 @@ namespace doyou {
 				}
 			}
 
-			virtual void onSendComplete()
+			virtual void onRecvComplete()
 			{
 				if (!_keepalive)
 				{

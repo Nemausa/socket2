@@ -9,10 +9,16 @@ class MyServer:public TcpWebSocketServer
 public:
 	virtual void OnNetMsgWS(Server* pServer, WebSocketClientS* pWSClient)
 	{
+		WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+		if (wsh.opcode == opcode_PONG)
+		{
+			CELLLog_Info("websocket server say: PONG");
+			return;
+		}
 		auto data = pWSClient->fetch_data();
 		//CELLLog_Info("websocket client say: %s", data);
-		WebSocketHeader& wsh = pWSClient->WebsocketHeader();
 		pWSClient->writeText(data, wsh.len);
+
 		//std::string resp;
 		//for (size_t i = 0; i < 130; i++)
 		//{
@@ -20,6 +26,8 @@ public:
 		//}
 		//resp += "=";
 		//pWSClient->writeText(resp.c_str(), resp.length());
+
+		pWSClient->ping();
 	}
 private:
 

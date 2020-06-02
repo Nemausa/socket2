@@ -27,15 +27,27 @@ namespace doyou {
 				std::string httpurl;
 				EventCall onRespCall = nullptr;
 				bool isGet = true;
+				uint8_t qusetCount= 0;
+				uint8_t maxQusetCount = 1;
 			};
 
 			std::queue<Event> _eventQueue;
+			bool _b_nextRequest = false;
 		public:
+			virtual bool OnRun(int microseconds = 1)
+			{
+				if(_b_nextRequest)
+					nextRequest();
+
+				return TcpClientMgr::OnRun(microseconds);
+			}
+
 			virtual void OnNetMsg(netmsg_DataHeader* header)
 			{
 				HttpClientC* pHttpClient = dynamic_cast<HttpClientC*>(_pClient);
 				if (!pHttpClient)
 					return;
+
 				if (!pHttpClient->getResponseInfo())
 					return;
 
@@ -45,7 +57,12 @@ namespace doyou {
 					_onRespCall = nullptr;
 				}
 
-				nextRequest();
+				pHttpClient->onRecvComplete();
+
+				if (!_eventQueue.empty())
+					_eventQueue.pop();
+
+				_b_nextRequest = true;
 			}
 
 			virtual void OnDisconnect() {
@@ -55,51 +72,29 @@ namespace doyou {
 					_onRespCall = nullptr;
 				}
 
-				nextRequest();
+				_b_nextRequest = true;
 			};
 
 			void get(const char* httpurl, EventCall onRespCall)
 			{
-				//如果正在请求中，那么将当前请求放入队列
-				if (_onRespCall)
-				{
-					Event e;
-					e.httpurl = httpurl;
-					e.onRespCall = onRespCall;
-					e.isGet = true;
-					_eventQueue.push(e);
-				}
-				else {
-					_onRespCall = onRespCall;
+				Event e;
+				e.httpurl = httpurl;
+				e.onRespCall = onRespCall;
+				e.isGet = true;
+				_eventQueue.push(e);
 
-					deatch_http_url(httpurl);
-					if (0 == hostname2ip(_host.c_str(), _port.c_str()))
-					{
-						url2get(_host.c_str(), _path.c_str(), _args.c_str());
-					}
-				}
+				_b_nextRequest = true;
 			}
 
 			void post(const char* httpurl, EventCall onRespCall)
 			{
-				//如果正在请求中，那么将当前请求放入队列
-				if (_onRespCall)
-				{
-					Event e;
-					e.httpurl = httpurl;
-					e.onRespCall = onRespCall;
-					e.isGet = false;
-					_eventQueue.push(e);
-				}
-				else {
-					_onRespCall = onRespCall;
+				Event e;
+				e.httpurl = httpurl;
+				e.onRespCall = onRespCall;
+				e.isGet = false;
+				_eventQueue.push(e);
 
-					deatch_http_url(httpurl);
-					if (0 == hostname2ip(_host.c_str(), _port.c_str()))
-					{
-						url2post(_host.c_str(), _path.c_str(), _args.c_str());
-					}
-				}
+				_b_nextRequest = true;
 			}
 
 			void post(const char* httpurl, const char* dataStr, EventCall onRespCall)
@@ -181,14 +176,37 @@ namespace doyou {
 		private:
 			void nextRequest()
 			{
+				_b_nextRequest = false;
 				if (!_eventQueue.empty())
 				{
 					Event& e = _eventQueue.front();
+
+					++e.qusetCount;
+					if (e.qusetCount > e.maxQusetCount)
+					{
+						_eventQueue.pop();
+						_b_nextRequest = true;
+						return;
+					}
+
 					if (e.isGet)
-						get(e.httpurl.c_str(), e.onRespCall);
+					{
+						deatch_http_url(e.httpurl);
+						if (0 == hostname2ip(_host.c_str(), _port.c_str()))
+						{
+							url2get(_host.c_str(), _path.c_str(), _args.c_str());
+							_onRespCall = e.onRespCall;
+						}
+					}
 					else
-						post(e.httpurl.c_str(), e.onRespCall);
-					_eventQueue.pop();
+					{
+						deatch_http_url(e.httpurl);
+						if (0 == hostname2ip(_host.c_str(), _port.c_str()))
+						{
+							url2post(_host.c_str(), _path.c_str(), _args.c_str());
+							_onRespCall = e.onRespCall;
+						}
+					}
 				}
 			}
 
