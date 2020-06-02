@@ -14,7 +14,23 @@ int main(int argc, char *args[])
 	Config::Instance().Init(argc, args);
 	
 	TcpWebSocketClient wsClient;
-	wsClient.connect("ws://192.168.1.128:4567/");
+	wsClient.connect("ws://192.168.1.103:4567/");
+	wsClient.onopen = [](WebSocketClientC* pWSClient) 
+	{
+		std::string msg = "bu hao.";
+		for (int i = 0; i < 10; i++)
+			msg += "-hello web";
+		msg += "===";
+		pWSClient->writeText(msg.c_str(), msg.length());
+	};
+
+	wsClient.onmessage = [](WebSocketClientC* pWSClient)
+	{
+		auto data = pWSClient->fetch_data();
+		CELLLog_Info("websocket server say: %s", data);
+		/*WebSocketHeader& wsh = pWSClient->WebsocketHeader();
+		pWSClient->writeText(data, wsh.len);*/
+	};
 
 	while (true)
 	{

@@ -40,11 +40,11 @@ namespace doyou {
 						CELLLog_Info("WebSocketClientC::handshake, Good.");
 						pWSClient->state(clientState_run);
 
-						std::string msg = "bu hao.";
-						for (int i = 0; i < 10; i++)
-							msg +="-hello web";
-						msg += "===";
-						pWSClient->writeText(msg.c_str(), msg.length());
+						if (onopen)
+						{
+							onopen(pWSClient);
+						}
+						
 					}
 					else {
 						CELLLog_Warring("WebSocketClientC::handshake, Bad.");
@@ -52,11 +52,11 @@ namespace doyou {
 					}
 				}
 				else if (clientState_run == pWSClient->state()) {
-					auto data = pWSClient->fetch_data();
-					//CELLLog_Info("websocket server say: %s", data);
-
-					WebSocketHeader& wsh = pWSClient->WebsocketHeader();
-					pWSClient->writeText(data, wsh.len);
+					if (onmessage)
+					{
+						onmessage(pWSClient);
+					}
+					
 				}
 			}
 
@@ -284,6 +284,13 @@ namespace doyou {
 			std::string _args;
 			////
 			std::string _cKey;
+			// 
+		public:
+			typedef std::function<void(WebSocketClientC*)> EventCall;
+			EventCall onopen = nullptr;
+			EventCall onclose = nullptr;
+			EventCall onmessage = nullptr;
+			EventCall onerror = nullptr;
 		};
 	}
 }
