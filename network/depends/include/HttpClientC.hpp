@@ -40,7 +40,7 @@ namespace doyou {
 				//未找到表示消息还不完整
 				if (!temp)
 					return 0;
-				//CELLLog_Info(_recvBuff.data());
+				CELLLog_Info(_recvBuff.data());
 				//偏移到消息结束位置
 				//4=strlen("\r\n\r\n")
 				temp += 4;
@@ -56,29 +56,28 @@ namespace doyou {
 				{
 					//需要计算响应体长度
 					char* p1 = strstr(_recvBuff.data(), "Content-Length: ");
-					//未找到表示格式错误
-					//返回错误码或者直接关闭客户端连接
-					if (!p1)
-						return -2;
-					//Content-Length: 1024\r\n
-					//16=strlen("Content-Length: ")
-					p1 += 16;
-					char* p2 = strchr(p1, '\r');
-					if (!p2)
-						return -2;
-					//计算数字长度
-					int n = p2 - p1;
-					//6位数 99万9999 上限100万字节， 就是1MB
-					//我们目前是靠接收缓冲区一次性接收
-					//所以数据上限是接收缓冲区大小减去_headerLen
-					if (n > 6)
-						return -2;
-					char lenStr[7] = {};
-					strncpy(lenStr, p1, n);
-					_bodyLen = atoi(lenStr);
-					//数据异常
-					if(_bodyLen < 0)
-						return -2;
+					if (p1)
+					{
+						//Content-Length: 1024\r\n
+						//16=strlen("Content-Length: ")
+						p1 += 16;
+						char* p2 = strchr(p1, '\r');
+						if (!p2)
+							return -2;
+						//计算数字长度
+						int n = p2 - p1;
+						//6位数 99万9999 上限100万字节， 就是1MB
+						//我们目前是靠接收缓冲区一次性接收
+						//所以数据上限是接收缓冲区大小减去_headerLen
+						if (n > 6)
+							return -2;
+						char lenStr[7] = {};
+						strncpy(lenStr, p1, n);
+						_bodyLen = atoi(lenStr);
+						//数据异常
+						if (_bodyLen < 0)
+							return -2;
+					}
 					//消息数据超过了缓冲区可接收长度
 					if (_headerLen + _bodyLen > _recvBuff.buffSize())
 						return -2;

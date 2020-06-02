@@ -194,6 +194,7 @@
     <ClInclude Include="..\depends\include\TcpSelectServer.hpp" />
     <ClInclude Include="..\depends\include\TcpServer.hpp" />
     <ClInclude Include="..\depends\include\TcpServerMgr.hpp" />
+    <ClInclude Include="..\depends\include\TcpWebSocketClient.hpp" />
     <ClInclude Include="..\depends\include\TcpWebSocketServer.hpp" />
     <ClInclude Include="..\depends\include\Thread.hpp" />
     <ClInclude Include="..\depends\include\Timestamp.hpp" />
