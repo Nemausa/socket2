@@ -39,10 +39,15 @@
 		}
 		
 		function _send(msg) {
-			for(i=0;i<10;i++)
-				msg+='-hello web';
+			var jsonObj= {
+				msgId:1,
+				time:Date.now(),
+				data:"hello"
+			}
+			var jsonstr = JSON.stringify(jsonObj);
+			console.log(jsonstr);
 			if(_websocket.readyState == WebSocket.OPEN) {
-				_websocket.send(msg);
+				_websocket.send(jsonstr);
 			}else {
 				console.log("send failed. websocket not open. please check.")
 			}

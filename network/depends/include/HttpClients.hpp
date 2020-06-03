@@ -165,7 +165,6 @@ namespace doyou {
 					|| 0 == strcmp("Keep-Alive", str)
 					|| 0 == strcmp("Upgrade", str)
 					);
-				_keepalive = false;
 				return true;
 			}
 			

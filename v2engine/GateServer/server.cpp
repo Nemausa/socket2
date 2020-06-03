@@ -2,6 +2,8 @@
 #include"Config.hpp"
 #include"TcpWebSocketServer.hpp"
 
+#include "CJsonObject.hpp"
+
 using namespace doyou::io;
 
 class MyServer:public TcpWebSocketServer
@@ -15,19 +17,34 @@ public:
 			CELLLog_Info("websocket server say: PONG");
 			return;
 		}
-		auto data = pWSClient->fetch_data();
-		//CELLLog_Info("websocket client say: %s", data);
-		pWSClient->writeText(data, wsh.len);
+		auto dataStr = pWSClient->fetch_data();
+		CELLLog_Info("websocket client say: %s", dataStr);
 
-		//std::string resp;
-		//for (size_t i = 0; i < 130; i++)
-		//{
-		//	resp += "HelloHello";
-		//}
-		//resp += "=";
-		//pWSClient->writeText(resp.c_str(), resp.length());
+		neb::CJsonObject json;
+		if (!json.Parse(dataStr))
+		{
+			CELLLog_Error("json.Parse error : %s", json.GetErrMsg().c_str());
+		}
 
-		pWSClient->ping();
+		int msgId = 0;
+		if (!json.Get("msgId", msgId))
+		{
+			CELLLog_Error("not found key<%s>.", "msgId");
+		}
+
+		time_t time = 0;
+		if (!json.Get("time", time))
+		{
+			CELLLog_Error("not found key<%s>.", "time");
+		}
+
+		std::string data;
+		if (!json.Get("data", data))
+		{
+			CELLLog_Error("not found key<%s>.", "data");
+		}
+
+		return;
 	}
 private:
 
