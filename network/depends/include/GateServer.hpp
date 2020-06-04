@@ -35,7 +35,7 @@ namespace doyou {
 				neb::CJsonObject ret;
 				ret.Add("data", "wo ye bu ji dao.");
 				client->response(msg, ret);
-
+			
 				//client->respone(msg, "wo ye bu ji dao.");
 			}
 

@@ -48,11 +48,7 @@ namespace doyou {
 
 			void cs_msg_heart(INetClient* client, neb::CJsonObject& msg)
 			{
-				CELLLog_Info("LoginServer::cs_msg_heart");
-
-				neb::CJsonObject ret;
-				ret.Add("data", "wo ye bu ji dao.");
-				client->response(msg, ret);
+				
 			}
 
 			void cs_msg_login(INetClient* client, neb::CJsonObject& msg)

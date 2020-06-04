@@ -5,6 +5,7 @@
 #include"CJsonObject.hpp"
 #include"TcpWebSocketClient.hpp"
 #include"Config.hpp"
+#include "Timestamp.hpp"
 
 namespace doyou {
 	namespace io {
@@ -14,6 +15,7 @@ namespace doyou {
 		{
 		private:
 			TcpWebSocketClient _client;
+			Timestamp _timestamp;
 			//
 			std::string _link_name;
 			std::string _url;
@@ -23,7 +25,7 @@ namespace doyou {
 			typedef std::function<void(INetClient*, neb::CJsonObject&)> NetEventCall;
 			std::map<std::string, NetEventCall> _map_msg_call;
 		public:
-			bool connect(const char* link_name,const char* url)
+			void connect(const char* link_name,const char* url)
 			{
 				_link_name = link_name;
 				_url = url;
@@ -33,12 +35,6 @@ namespace doyou {
 
 				_client.send_buff_size(s_size);
 				_client.recv_buff_size(r_size);
-
-				if (!_client.connect(url))
-				{
-					CELLLog_Warring("%s::INetClient::connect(%s) failed.", _link_name.c_str(), _url.c_str());
-					return false;
-				}
 
 				//do
 				_client.onopen = [this](WebSocketClientC* pWSClient)
@@ -116,12 +112,30 @@ namespace doyou {
 					on_net_msg_do("onerror", json);
 				};
 
-				return true;
 			}
 
 			bool run(int microseconds = 1)
 			{
-				return _client.OnRun(microseconds);
+				if (_client.isRun())
+				{
+					if (_timestamp.getElapsedSecond() > 5.0)
+					{
+						_timestamp.update();
+						neb::CJsonObject json;
+						request("cs_msg_heart", json);
+					}
+					return _client.OnRun(microseconds);
+				}	
+				
+				if (_client.connect(_url.c_str()))
+				{
+					_timestamp.update();
+					CELLLog_Warring("%s::INetClient::connect(%s) success.", _link_name.c_str(), _url.c_str());
+					return true;
+				}
+				
+				return false;
+
 			}
 
 			void close()
@@ -158,6 +172,7 @@ namespace doyou {
 
 				std::string retStr = msg.ToString();
 				_client.writeText(retStr.c_str(), retStr.length());
+				_timestamp.update();
 			}
 
 			void response(int msgId, std::string data)
