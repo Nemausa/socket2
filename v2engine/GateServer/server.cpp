@@ -1,6 +1,6 @@
 #include"Log.hpp"
 #include"Config.hpp"
-#include "GateServer.hpp"
+#include"GateServer.hpp"
 
 
 using namespace doyou::io;
@@ -8,10 +8,9 @@ using namespace doyou::io;
 int main(int argc, char* args[])
 {
 	//设置运行日志名称
-	Log::Instance().setLogPath("serverLog", "w", false);
+	Log::Instance().setLogPath("GateServerLog", "w", false);
 	Config::Instance().Init(argc, args);
 
-	
 	GateServer server;
 	server.Init();
 	//在主线程中等待用户输入命令

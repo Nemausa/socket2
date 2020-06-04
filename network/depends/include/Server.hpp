@@ -105,14 +105,20 @@ namespace doyou {
 					{
 #ifdef CELL_USE_IOCP
 						if (pClient->isPostIoAction())
+						{
 							pClient->destorySocket();
+						}
 						else
+						{
 							OnClientLeave(pClient);
+							iter = _clients.erase(iter);
+							continue;
+						}
 #else
 						OnClientLeave(pClient);
-#endif // CELL_USE_IOCP
 						iter = _clients.erase(iter);
 						continue;
+#endif // CELL_USE_IOCP
 					}
 
 					////定时发送检测
@@ -204,6 +210,14 @@ namespace doyou {
 			size_t getClientCount()
 			{
 				return _clients.size() + _clientsBuff.size();
+			}
+
+			Client* find_client(int id)
+			{
+				auto iter = _clients.find((SOCKET)id);
+				if (iter != _clients.end())
+					return iter->second;
+				return nullptr;
 			}
 
 			//void addSendTask(Client* pClient, netmsg_DataHeader* header)
