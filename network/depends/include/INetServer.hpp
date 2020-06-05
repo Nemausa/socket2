@@ -80,7 +80,7 @@ namespace doyou {
 					return;
 				}
 				auto dataStr = pWSClient->fetch_data();
-				CELLLog_Info("websocket client say: %s", dataStr);
+				//CELLLog_Info("websocket client say: %s", dataStr);
 
 				neb::CJsonObject json;
 				if (!json.Parse(dataStr))

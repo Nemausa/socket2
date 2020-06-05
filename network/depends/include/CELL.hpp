@@ -1,6 +1,6 @@
 #ifndef _CELL_HPP_
 #define _CELL_HPP_
-
+#define _CRT_SECURE_NO_WARNINGS
 //SOCKET
 #ifdef _WIN32
 	#define FD_SETSIZE      65535

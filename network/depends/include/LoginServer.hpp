@@ -1,7 +1,7 @@
 #ifndef _doyou_io_LoginServer_HPP_
 #define _doyou_io_LoginServer_HPP_
 
-#include "INetClient.hpp"
+#include"INetClient.hpp"
 
 namespace doyou {
 	namespace io {
@@ -17,7 +17,6 @@ namespace doyou {
 
 				_csGate.reg_msg_call("onopen", std::bind(&LoginServer::onopen_csGate, this, std::placeholders::_1, std::placeholders::_2));
 
-				_csGate.reg_msg_call("cs_msg_heart", std::bind(&LoginServer::cs_msg_heart, this,std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_login", std::bind(&LoginServer::cs_msg_login, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
@@ -43,12 +42,9 @@ namespace doyou {
 				json["apis"].Add("cs_msg_register");
 				json["apis"].Add("cs_msg_change_pw");
 
-				client->request("ss_reg_api", json);
-			}
-
-			void cs_msg_heart(INetClient* client, neb::CJsonObject& msg)
-			{
-				
+				client->request("ss_reg_api", json, [](INetClient* client, neb::CJsonObject& msg) {
+					CELLLog_Info(msg("data").c_str());
+				});
 			}
 
 			void cs_msg_login(INetClient* client, neb::CJsonObject& msg)
