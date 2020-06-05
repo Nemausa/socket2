@@ -13,7 +13,8 @@ namespace doyou {
 		public:
 			void Init()
 			{
-				_csGate.connect("csGate","ws://192.168.1.103:4567");
+				auto csGate = Config::Instance().getStr("csGateUrl", "ws://127.0.0.1:4567");
+				_csGate.connect("csGate", csGate);
 
 				_csGate.reg_msg_call("onopen", std::bind(&LoginServer::onopen_csGate, this, std::placeholders::_1, std::placeholders::_2));
 

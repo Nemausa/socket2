@@ -4,7 +4,7 @@
 #include"CJsonObject.hpp"
 #include"INetClientS.hpp"
 #include<vector>
-
+#include <algorithm>
 namespace doyou {
 	namespace io {
 

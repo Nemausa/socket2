@@ -10,13 +10,12 @@ namespace doyou {
 		{
 		public:
 			//获取当前计算机运行时间 (毫秒)
-			static time_t getNowInMilliSec()
+			static long long getNowInMilliSec()
 			{
 				return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
 			}
-
-			//获取当前时间戳 (毫秒)
-			static time_t system_clock_now()
+			//获取当前时间 (毫秒)
+			static long long system_clock_now()
 			{
 				return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 			}
