@@ -162,6 +162,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\network\depends\include\DBManager.hpp" />
     <ClInclude Include="..\..\network\depends\include\DBUser.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetClient.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetTransfer.hpp" />

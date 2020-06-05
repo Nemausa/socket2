@@ -68,5 +68,8 @@
     <ClInclude Include="..\..\network\depends\sqlite\sqlite3ext.h">
       <Filter>sqlite</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\network\depends\include\DBManager.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
