@@ -2,8 +2,8 @@
 #define _doyou_io_LoginServer_HPP_
 
 #include<regex>
-
 #include"INetClient.hpp"
+#include "DBUser.hpp"
 
 namespace doyou {
 	namespace io {
@@ -11,7 +11,7 @@ namespace doyou {
 		{
 		private:
 			INetClient _csGate;
-			
+			DBUser _dbuser;
 		public:
 			void Init()
 			{
@@ -163,29 +163,29 @@ namespace doyou {
 				}
 				//
 				CELLLog_Info("LoginServer::cs_msg_register: msgId=%d username=%s password=%s",msgId , username.c_str(), password.c_str());
-				////判断用户名是否已存在
-				//if (_dbuser.has_username(username))
-				//{
-				//	client->resp_error(clientId, msgId, "username already exists");
-				//	return;
-				//}
-				////判断昵称是否已存在
-				//if (_dbuser.has_nickname(nickname))
-				//{
-				//	client->resp_error(clientId, msgId, "nickname already exists");
-				//	return;
-				//}
-				////新增用户数据
-				//auto userId = _dbuser.add_user(username, password, nickname, sex);
-				//if (userId > 0)
-				//{
-				//	neb::CJsonObject ret;
-				//	ret.Add("userId", userId);
-				//	client->response(clientId, msgId, ret);
-				//}
-				//else {
-				//	client->resp_error(clientId, msgId, "unkown error.");
-				//}
+				//判断用户名是否已存在
+				if (_dbuser.has_username(username))
+				{
+					client->resp_error(clientId, msgId, "username already exists");
+					return;
+				}
+				//判断昵称是否已存在
+				if (_dbuser.has_nickname(nickname))
+				{
+					client->resp_error(clientId, msgId, "nickname already exists");
+					return;
+				}
+				//新增用户数据
+				auto userId = _dbuser.add_user(username, password, nickname, sex);
+				if (userId > 0)
+				{
+					neb::CJsonObject ret;
+					ret.Add("userId", userId);
+					client->response(clientId, msgId, ret);
+				}
+				else {
+					client->resp_error(clientId, msgId, "unkown error.");
+				}
 			}
 		};
 	}

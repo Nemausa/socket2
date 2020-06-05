@@ -44,5 +44,8 @@
     <ClInclude Include="..\..\network\depends\include\LoginServer.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\network\depends\include\DBUser.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
