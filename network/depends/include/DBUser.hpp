@@ -20,6 +20,12 @@ namespace doyou
 	{
 		class DBUser
 		{
+			int64_t _id = 100000;
+
+			int64_t makeId()
+			{
+				return ++_id;
+			}
 		public:
 			bool has_username(const std::string& username)
 			{
@@ -33,7 +39,7 @@ namespace doyou
 
 			int64_t add_user(const std::string& username, const std::string& password, const std::string& nickname, int sex)
 			{
-				return 0;
+				return makeId();
 			}
 		};
 	}

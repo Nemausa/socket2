@@ -96,7 +96,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\network\depends\include;..\..\network\depends\json</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\network\depends\include;..\..\network\depends\json;..\..\network\depends\sqlite</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -110,7 +110,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\network\depends\include;..\..\network\depends\json</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\network\depends\include;..\..\network\depends\json;..\..\network\depends\sqlite</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,6 +126,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\network\depends\include;..\..\network\depends\json;..\..\network\depends\sqlite</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,6 +144,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\network\depends\include;..\..\network\depends\json;..\..\network\depends\sqlite</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,6 +156,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\network\depends\json\cJSON.c" />
     <ClCompile Include="..\..\network\depends\json\CJsonObject.cpp" />
+    <ClCompile Include="..\..\network\depends\sqlite\CppSQLite3.cpp" />
+    <ClCompile Include="..\..\network\depends\sqlite\shell.c" />
+    <ClCompile Include="..\..\network\depends\sqlite\sqlite3.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +168,9 @@
     <ClInclude Include="..\..\network\depends\include\LoginServer.hpp" />
     <ClInclude Include="..\..\network\depends\json\cJSON.h" />
     <ClInclude Include="..\..\network\depends\json\CJsonObject.hpp" />
+    <ClInclude Include="..\..\network\depends\sqlite\CppSQLite3.h" />
+    <ClInclude Include="..\..\network\depends\sqlite\sqlite3.h" />
+    <ClInclude Include="..\..\network\depends\sqlite\sqlite3ext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
