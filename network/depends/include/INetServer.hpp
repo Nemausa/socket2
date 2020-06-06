@@ -205,7 +205,7 @@ namespace doyou {
 					itr->second(pServer, pWSClient, msgJson);
 					return true;
 				}
-				CELLLog_Info("%s::INetServer::on_net_msg_do not found cmd<%s>.", pWSClient->link_name().c_str(), cmd.c_str());
+				//CELLLog_Info("%s::INetServer::on_net_msg_do not found cmd<%s>.", pWSClient->link_name().c_str(), cmd.c_str());
 				return false;
 			}
 		};

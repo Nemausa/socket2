@@ -1,24 +1,11 @@
-/*********************************************************************************************
- *  @file:    DBManager.hpp
- *  @version: ver 1.0
- *  @author:  kevin
- *  @brief:  
- *  @change:
- *  @email:   tappanmorris@outlook.com
- *  date:     2020/6/6 3:08
-**********************************************************************************************/
+#ifndef _doyou_io_DBManager_HPP_
+#define _doyou_io_DBManager_HPP_
 
-#ifndef _DBMANAGER_H_
-#define _DBMANAGER_H_
+#include"Log.hpp"
+#include"CppSQLite3.h"
 
-#include "Log.hpp"
-#include "CppSQLite3.h"
-
-
-namespace doyou
-{
-	namespace io
-	{
+namespace doyou {
+	namespace io {
 		class DBManager
 		{
 		protected:
@@ -28,17 +15,16 @@ namespace doyou
 			bool open(const char* db_name)
 			{
 				_db_name = db_name;
-				try 
+				try
 				{
 					_db.open(db_name);
+					return true;
 				}
-				catch(CppSQLite3Exception& e)
+				catch (CppSQLite3Exception& e)
 				{
-					CELLLog_Error("DBManager::open(%s) error:%s", _db_name, e.errorMessage());
-					return false;
+					CELLLog_Error("DBManager::open(%s) error: %s", db_name, e.errorMessage());
 				}
-				
-				return true;
+				return false;
 			}
 
 			bool close()
@@ -46,56 +32,33 @@ namespace doyou
 				try
 				{
 					_db.close();
+					return true;
 				}
 				catch (CppSQLite3Exception& e)
 				{
-					CELLLog_Error("DBManager::close(%s) error:%s", _db_name.c_str(), e.errorMessage());
-					return false;
+					CELLLog_Error("DBManager::close(%s) error: %s", _db_name.c_str(), e.errorMessage());
 				}
-				return true;
-			}
-
-			bool findByKV(const char* table, const char* k, const char* v)
-			{
-
-
 				return false;
 			}
 
-			bool create_table_info()
+			bool hasByKV(const char* table, const char* k, const char* v)
 			{
-				auto sql_user_info =
-					"CREATE TABLE user_info ( \
-					id          INTEGER PRIMARY KEY,\
-					userId      INTEGER UNIQUE,\
-					username    TEXT    UNIQUE,\
-					password    TEXT,\
-					nickname    TEXT    UNIQUE,\
-					sex         INTEGER,\
-					state       INTEGER,\
-					create_date INTEGER\
-					);\
-					";
+				char sql_buff[1024] = {};
+				auto sql = "SELECT 1 FROM %s WHERE %s='%s' LIMIT 1;";
+				sprintf(sql_buff, sql, table, k, v);
 
 				try
 				{
-					if (!_db.tableExists("user_info"))
-					{
-						_db.execDML(sql_user_info);
-					}
+					CppSQLite3Query query = _db.execQuery(sql_buff);
+					return !query.eof();
 				}
 				catch (CppSQLite3Exception& e)
 				{
-					CELLLog_Error("DBManager::create table(%s) error:%s", _db_name, e.errorMessage());
+					CELLLog_Error("DBManager::hasByKV(%s) error: %s", _db_name.c_str(), e.errorMessage());
 				}
-				
-				return true;
+				return false;
 			}
 		};
 	}
 }
-
-
-#endif  //_DBMANAGER_H_
-
-
+#endif // !_doyou_io_DBManager_HPP_

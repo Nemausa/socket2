@@ -15,6 +15,7 @@ namespace doyou {
 		public:
 			void Init()
 			{
+				_dbuser.init();
 				auto csGate = Config::Instance().getStr("csGateUrl", "ws://127.0.0.1:4567");
 				_csGate.connect("csGate", csGate);
 

@@ -3,7 +3,7 @@
 #include"LoginServer.hpp"
 using namespace doyou::io;
 
-#include "DBManager.hpp"
+#include "DBUser.hpp"
 
 int main(int argc, char* args[])
 {
@@ -11,9 +11,11 @@ int main(int argc, char* args[])
 	Log::Instance().setLogPath("LoginServerLog", "w", false);
 	Config::Instance().Init(argc, args);
 
-	DBManager db;
-	db.open("user.db");
-	db.create_table_info();
+	DBUser db;
+	db.init();
+	//auto b = db.hasByKV("user_info", "username", "aaa");
+	//db.add_user("user001", "mm123456", "qbl", 0);
+	db.close();
 	LoginServer server;
 	server.Init();
 	while (true)
