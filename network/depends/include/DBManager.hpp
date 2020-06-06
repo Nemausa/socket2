@@ -3,6 +3,7 @@
 
 #include"Log.hpp"
 #include"CppSQLite3.h"
+#include<sstream>
 
 namespace doyou {
 	namespace io {
@@ -148,73 +149,102 @@ namespace doyou {
 				return -1;
 			}
 
-			bool hasByKV(const char* table, const char* k, const char* v)
-			{
-				char sql_buff[1024] = {};
-				auto sql = "SELECT 1 FROM %s WHERE %s='%s' LIMIT 1;";
-				sprintf(sql_buff, sql, table, k, v);
-				return execQuery(sql_buff);
+			template<typename vT>
+			bool hasByKV(const char* table, const char* k, vT v)
+			{//sql = "SELECT 1 FROM table WHERE k=v LIMIT 1;"
+				std::stringstream ss;
+				ss << "SELECT 1 FROM " << table << " WHERE " << k << '=';
+
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+
+				ss << " LIMIT 1;";
+
+				return execQuery(ss.str().c_str());
 			}
 
-			bool findByKV(const char* table, const char* k, const char* v, neb::CJsonObject& json)
-			{
-				char sql_buff[1024] = {};
-				auto sql = "SELECT * FROM %s WHERE %s='%s';";
-				sprintf(sql_buff, sql, table, k, v);
-				return execQuery(sql_buff, json);
+			template<typename vT>
+			bool findByKV(const char* table, const char* k, vT v, neb::CJsonObject& json)
+			{//sql = "SELECT * FROM table WHERE k=v;"
+				std::stringstream ss;
+				ss << "SELECT * FROM " << table << " WHERE " << k << '=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				return execQuery(ss.str().c_str(), json);
 			}
 
-			bool findByKV(const char* table, const char* k, int v, neb::CJsonObject& json)
-			{
-				auto sql = "SELECT * FROM %s WHERE %s=%d;";
-				auto sql_buff = Log::newFormatStr(sql, table, k, v);
-				bool ret = execQuery(sql_buff, json);
-				delete[] sql_buff;
-				return ret;
+			template<typename vT, typename v2T>
+			bool findByKV2(const char* table, const char* k, vT v, const char* k2, v2T v2, neb::CJsonObject& json)
+			{//sql = "SELECT * FROM table WHERE k=v and k2=v2;"
+				std::stringstream ss;
+				ss << "SELECT * FROM " << table << " WHERE " << k << '=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				ss << " AND " << k2 << '=';
+				if (typeid(v2) == typeid(const char*) || typeid(v2) == typeid(char*))
+					ss << '\'' << v2 << '\'';
+				else
+					ss << v2;
+				//
+				return execQuery(ss.str().c_str(), json);
 			}
 
-			bool findByKV(const char* table, const char* k, int64 v, neb::CJsonObject& json)
-			{
-				char sql_buff[1024] = {};
-#ifdef _WIN32
-				auto sql = "SELECT * FROM %s WHERE %s=%I64d;";
-#else
-				auto sql = "SELECT * FROM %s WHERE %s=%Ild;";
-#endif
-				sprintf(sql_buff, sql, table, k, v);
-				return execQuery(sql_buff, json);
+			template<typename vT, typename uvT>
+			int updateByKV(const char* table, const char* k, vT v, const char* uk, uvT uv)
+			{//sql = "UPDATE table SET uk=uv WHERE k='v';"
+				std::stringstream ss;
+				ss << "UPDATE " << table << " SET " << uk << '=';
+				//
+				if (typeid(uv) == typeid(const char*) || typeid(uv) == typeid(char*))
+					ss << '\'' << uv << '\'';
+				else
+					ss << uv;
+				//
+				ss <<" WHERE "<<k<<'=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				return execDML(ss.str().c_str());
 			}
 
-			int updateByKV(const char* table, const char* k, const char* v, const char* uk, int64 uv)
-			{
-				char sql_buff[1024] = {};
-#ifdef _WIN32
-				auto sql = "UPDATE %s SET %s=%I64d WHERE %s='%s';";
-#else
-				auto sql = "UPDATE %s SET %s=%lld WHERE %s='%s';";
-#endif
-				sprintf(sql_buff, sql, table, uk, uv, k, v);
-				return execDML(sql_buff);
-			}
-
-			int updateByKV(const char* table, const char* k, const char* v, const char* uk, int uv)
-			{
-				char sql_buff[1024] = {};
-#ifdef _WIN32
-				auto sql = "UPDATE %s SET %s=%d WHERE %s='%s';";
-#else
-				auto sql = "UPDATE %s SET %s=%d WHERE %s='%s';";
-#endif
-				sprintf(sql_buff, sql, table, uk, uv, k, v);
-				return execDML(sql_buff);
-			}
-
-			int updateByKV(const char* table, const char* k, const char* v, const char* uk, const char* uv)
-			{
-				char sql_buff[1024] = {};
-				auto sql = "UPDATE %s SET %s='%s' WHERE %s='%s';";
-				sprintf(sql_buff, sql, table, uk, uv, k, v);
-				return execDML(sql_buff);
+			template<typename vT, typename v2T, typename uvT>
+			int updateByKV2(const char* table, const char* k, vT v, const char* k2, v2T v2, const char* uk, uvT uv)
+			{//sql = "UPDATE table SET uk=uv WHERE k='v' AND k2='v2';"
+				std::stringstream ss;
+				ss << "UPDATE " << table << " SET " << uk << '=';
+				//
+				if (typeid(uv) == typeid(const char*) || typeid(uv) == typeid(char*))
+					ss << '\'' << uv << '\'';
+				else
+					ss << uv;
+				//
+				ss << " WHERE " << k << '=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				ss << " AND " << k2 << '=';
+				if (typeid(v2) == typeid(const char*) || typeid(v2) == typeid(char*))
+					ss << '\'' << v2 << '\'';
+				else
+					ss << v2;
+				//
+				return execDML(ss.str().c_str());
 			}
 		};
 	}

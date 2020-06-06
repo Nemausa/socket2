@@ -93,15 +93,19 @@ CREATE TABLE user_info(\
 			int64 add_user(const std::string& username, const std::string& password, const std::string& nickname, int sex)
 			{
 				int64 userId = makeId();
-				char sql_buff[1024] = {};
-#ifdef _WIN32
-				auto sql = "INSERT INTO user_info (userId, username, password, nickname, sex, state, create_date) VALUES (%I64d, '%s', '%s', '%s', %d, %d, %I64d);";
-#else
-				auto sql = "INSERT INTO user_info (userId, username, password, nickname, sex, state, create_date) VALUES (%lld, '%s', '%s', '%s', %d, %d, %lld);";
-#endif
-				sprintf(sql_buff, sql, userId, username.c_str(), password.c_str(), nickname.c_str(), sex, 0, Time::system_clock_now());
+				//sql = "INSERT INTO user_info (userId, username, password, nickname, sex, state, create_date) VALUES (%lld, '%s', '%s', '%s', %d, %d, %lld);
+				std::stringstream ss;
+				ss << "INSERT INTO user_info (userId, username, password, nickname, sex, state, create_date) VALUES (";
+				ss << userId<<", ";
+				ss << "'" << username << "', ";
+				ss << "'" << password << "', ";
+				ss << "'" << nickname << "', ";
+				ss << sex << ", ";
+				ss << 0 << ", ";
+				ss << Time::system_clock_now() << ");";
 
-				int changes = execDML(sql_buff);
+				int changes = execDML(ss.str().c_str());
+
 				CELLLog_Info("DBUser::add_user changes=%d", changes);
 				if (changes > 0)
 				{
