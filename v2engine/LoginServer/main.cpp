@@ -18,6 +18,8 @@ int main(int argc, char* args[])
 	DBUser db;
 	db.init();
 
+	db.deleteByKV("user_info", "sex", 1);
+	return 0;
 	if (db.hasByKV("user_info", "username", "user001"))
 	{
 		CELLLog_Info("has_username user001 true");

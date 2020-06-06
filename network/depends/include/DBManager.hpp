@@ -246,6 +246,40 @@ namespace doyou {
 				//
 				return execDML(ss.str().c_str());
 			}
+
+			template<typename vT>
+			bool deleteByKV(const char* table, const char* k, vT v)
+			{//sql = "SELECT * FROM table WHERE k=v;"
+				std::stringstream ss;
+				ss << "DELETE FROM " << table << " WHERE " << k << '=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				return execDML(ss.str().c_str());
+			}
+
+			template<typename vT, typename v2T>
+			bool deleteByKV2(const char* table, const char* k, vT v, const char* k2, v2T v2)
+			{//sql = "SELECT * FROM table WHERE k=v and k2=v2;"
+				std::stringstream ss;
+				ss << "DELETE FROM " << table << " WHERE " << k << '=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				ss << " AND " << k2 << '=';
+				if (typeid(v2) == typeid(const char*) || typeid(v2) == typeid(char*))
+					ss << '\'' << v2 << '\'';
+				else
+					ss << v2;
+				//
+				return execDML(ss.str().c_str());
+			}
 		};
 	}
 }
