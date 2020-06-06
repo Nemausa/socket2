@@ -17,7 +17,7 @@ namespace doyou {
 			{
 				close();
 			}
-		protected:
+		public:
 			int64 makeId()
 			{
 				return _max_userId+1;
@@ -106,7 +106,7 @@ CREATE TABLE user_info(\
 
 				int changes = execDML(ss.str().c_str());
 
-				CELLLog_Info("DBUser::add_user changes=%d", changes);
+				//CELLLog_Info("DBUser::add_user changes=%d", changes);
 				if (changes > 0)
 				{
 					++_max_userId;

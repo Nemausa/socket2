@@ -6,12 +6,15 @@
 *.sdf
 *.opensdf
 *.txt
+*.db
+*.vspx
+
 # 忽略*.b和*.B文件，my.b除外
 
 *.[bB]
 
 !my.b
-
+*.db
 # 忽略dbg文件和dbg目录
 
 .VC.opendb
@@ -27,6 +30,7 @@ ipch
 bin
 temp
 *.VC.opendb
+*.db
 # 只忽略dbg目录，不忽略dbg文件
 
 dbg/

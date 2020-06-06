@@ -17,9 +17,32 @@ int main(int argc, char* args[])
 	////////////////////
 	DBUser db;
 	db.init();
+	db.execDML("begin;");
+	int count = 10000;
+	int max = 10;
+	for (int n = 0; n < max; n++)
+	{
+		char usernmae[32] = {};
+		char nickname[32] = {};
 
-	db.deleteByKV("user_info", "sex", 1);
+		Timestamp timestamp;
+		for (int i = 0; i < count; i++)
+		{
+			sprintf(usernmae, "test%05d", db.makeId());
+			sprintf(nickname, "abc%05d", db.makeId());
+			db.add_user(usernmae, "mm123456", nickname, i % 2);
+		}
+
+		auto t = timestamp.getElapsedSecond();
+		CELLLog_Info("count=%d, time=%f, avg=%f, sec=%f", count, t, t / count, count / t);
+	}
+
+	db.execDML("commit");
+	system("pause");
+
+
 	return 0;
+	db.deleteByKV("user_info", "sex", 1);
 	if (db.hasByKV("user_info", "username", "user001"))
 	{
 		CELLLog_Info("has_username user001 true");
