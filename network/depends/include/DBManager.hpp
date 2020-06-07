@@ -12,6 +12,7 @@ namespace doyou {
 		protected:
 			CppSQLite3DB _db;
 			std::string _db_name;
+			Timestamp _timestamp;
 		public:
 			bool open(const char* db_name)
 			{
@@ -25,6 +26,7 @@ namespace doyou {
 				{
 					CELLLog_Error("DBManager::open(%s) error: %s", db_name, e.errorMessage());
 				}
+
 				return false;
 			}
 
@@ -40,6 +42,26 @@ namespace doyou {
 					CELLLog_Error("DBManager::close(%s) error: %s", _db_name.c_str(), e.errorMessage());
 				}
 				return false;
+			}
+
+			void begin()
+			{
+				execDML("begin;");
+			}
+
+			void commit()
+			{
+				execDML("commit;");
+			}
+
+			void run()
+			{
+				if (_timestamp.getElapsedSecond() > 5.0)
+				{
+					commit();
+					_timestamp.update();
+					begin();
+				}
 			}
 
 			bool tableExists(const char* szTable)

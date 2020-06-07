@@ -29,6 +29,7 @@ namespace doyou {
 			void Run()
 			{
 				_csGate.run(1);
+				_dbuser.run();
 			}
 
 			void Close()

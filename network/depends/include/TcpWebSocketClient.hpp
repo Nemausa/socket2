@@ -103,17 +103,16 @@ namespace doyou {
 
 				std::string cKeyAccept = _cKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-				gloox::SHA sha1;
-				sha1.feed(cKeyAccept);
-				std::string  s1 = sha1.binary();
+				unsigned char strSha1[20] = {};
+				SHA1_String((const unsigned char*)cKeyAccept.c_str(), cKeyAccept.length(), strSha1);
 
-				cKeyAccept = Base64Encode((const unsigned char*)s1.c_str(), s1.length());
-				if (sKeyAccept != cKeyAccept)
+				cKeyAccept = Base64Encode(strSha1, 20);
+
+				if (cKeyAccept != sKeyAccept)
 				{
-					CELLLog_Error("WebSocketClientC::handshake, cKeyAccept!=sKeyAccept");
+					CELLLog_Error("WebSocketClientC::handshake, cKeyAccept != sKeyAccept!");
 					return false;
 				}
-
 				return true;
 			}
 

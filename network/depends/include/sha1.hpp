@@ -340,7 +340,23 @@ namespace gloox
 	}
 
 }
+namespace doyou {
+	namespace io {
+		static int SHA1_String(const unsigned char* inputString, unsigned long len, unsigned char* pOutSHA1Buf)
+		{
+			if (!inputString || !pOutSHA1Buf)
+				return -1;
 
+			gloox::SHA sha1;
+			sha1.feed(inputString, len);
+			std::string s1 = sha1.binary();
+			if (s1.length() != 20)
+				return -2;
 
+			memcpy(pOutSHA1Buf, s1.c_str(), 20);
 
+			return 1;
+		}
+	}
+}
 #endif // SHA_H__

@@ -192,7 +192,7 @@ namespace doyou {
 				msg.Add("cmd", cmd);
 				msg.Add("is_req", true, true);
 				msg.Add("msgId", ++msgId);
-				msg.Add("time", Time::system_clock_now());
+				msg.Add("time", (int64)Time::system_clock_now());
 				msg.Add("data", data);
 
 				std::string retStr = msg.ToString();
@@ -209,7 +209,7 @@ namespace doyou {
 				msg.Add("msgId", ++msgId);
 				_map_request_call[msgId] = call;
 
-				msg.Add("time", Time::system_clock_now());
+				msg.Add("time", (int64)Time::system_clock_now());
 				msg.Add("data", data);
 
 				std::string retStr = msg.ToString();
@@ -223,7 +223,7 @@ namespace doyou {
 				ret.Add("msgId", msgId);
 				ret.Add("clientId", clientId);
 				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
+				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
 				std::string retStr = ret.ToString();
@@ -237,7 +237,7 @@ namespace doyou {
 				ret.Add("msgId", msgId);
 				ret.Add("clientId", clientId);
 				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
+				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
 				std::string retStr = ret.ToString();

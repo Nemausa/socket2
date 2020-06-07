@@ -38,14 +38,11 @@ namespace doyou {
 				std::string sKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 				sKey = cKey + sKey;
-				
-				gloox::SHA sha1;
-				sha1.feed(sKey);
-				std::string  s1 = sha1.binary();
-				//unsigned char strSha1[20] = {};
-				//SHA1_String((const unsigned char*)sKey.c_str(), sKey.length(), strSha1);
 
-				std::string sKeyAccept = Base64Encode((const unsigned char*)s1.c_str(), s1.length());
+				unsigned char strSha1[20] = {};
+				SHA1_String((const unsigned char*)sKey.c_str(), sKey.length(), strSha1);
+
+				std::string sKeyAccept = Base64Encode(strSha1, 20);
 
 
 				char resp[256] = {};

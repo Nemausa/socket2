@@ -56,7 +56,7 @@ namespace doyou {
 				neb::CJsonObject ret;
 				ret.Add("msgId", msgId);
 				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
+				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
 				std::string retStr = ret.ToString();
@@ -75,7 +75,7 @@ namespace doyou {
 				neb::CJsonObject ret;
 				ret.Add("msgId", msgId);
 				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
+				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
 				std::string retStr = ret.ToString();
@@ -93,7 +93,7 @@ namespace doyou {
 
 				ret.Add("msgId", msgId);
 				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
+				ret.Add("time", (int64)Time::system_clock_now());
 
 				std::string retStr = ret.ToString();
 				this->writeText(retStr.c_str(), retStr.length());
