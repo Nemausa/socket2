@@ -17,12 +17,12 @@ namespace doyou {
 			{
 				close();
 			}
-		public:
+		
 			int64 makeId()
 			{
 				return _max_userId+1;
 			}
-
+		protected:
 			void load_id()
 			{
 				neb::CJsonObject json;

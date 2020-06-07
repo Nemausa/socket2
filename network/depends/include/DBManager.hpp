@@ -179,6 +179,20 @@ namespace doyou {
 				return execQuery(ss.str().c_str(), json);
 			}
 
+			template<typename vT>
+			bool findByKV(const char* sk, const char* table, const char* k, vT v, neb::CJsonObject& json)
+			{//sql = "SELECT * FROM table WHERE k=v;"
+				std::stringstream ss;
+				ss << "SELECT "<<sk<<" FROM " << table << " WHERE " << k << '=';
+				//
+				if (typeid(v) == typeid(const char*) || typeid(v) == typeid(char*))
+					ss << '\'' << v << '\'';
+				else
+					ss << v;
+				//
+				return execQuery(ss.str().c_str(), json);
+			}
+
 			template<typename vT, typename v2T>
 			bool findByKV2(const char* table, const char* k, vT v, const char* k2, v2T v2, neb::CJsonObject& json)
 			{//sql = "SELECT * FROM table WHERE k=v and k2=v2;"
@@ -248,8 +262,8 @@ namespace doyou {
 			}
 
 			template<typename vT>
-			bool deleteByKV(const char* table, const char* k, vT v)
-			{//sql = "SELECT * FROM table WHERE k=v;"
+			int deleteByKV(const char* table, const char* k, vT v)
+			{//sql = "DELETE FROM table WHERE k=v;"
 				std::stringstream ss;
 				ss << "DELETE FROM " << table << " WHERE " << k << '=';
 				//
@@ -262,8 +276,8 @@ namespace doyou {
 			}
 
 			template<typename vT, typename v2T>
-			bool deleteByKV2(const char* table, const char* k, vT v, const char* k2, v2T v2)
-			{//sql = "SELECT * FROM table WHERE k=v and k2=v2;"
+			int deleteByKV2(const char* table, const char* k, vT v, const char* k2, v2T v2)
+			{//sql = "DELETE FROM table WHERE k=v and k2=v2;"
 				std::stringstream ss;
 				ss << "DELETE FROM " << table << " WHERE " << k << '=';
 				//

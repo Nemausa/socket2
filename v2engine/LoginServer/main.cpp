@@ -17,32 +17,110 @@ int main(int argc, char* args[])
 	////////////////////
 	DBUser db;
 	db.init();
-	db.execDML("begin;");
-	int count = 10000;
-	int max = 10;
-	for (int n = 0; n < max; n++)
-	{
-		char usernmae[32] = {};
-		char nickname[32] = {};
+	int count = 100000;
+	int nMax = 10;
+	char username[32] = {};
+	char nickname[32] = {};
 
+	Timestamp timestamp00;
+	//事务开始
+	db.execDML("begin;");
+	////////
+	CELLLog_Info("db.add_user");
+	for (int n = 0; n < nMax; n++)
+	{
 		Timestamp timestamp;
 		for (int i = 0; i < count; i++)
 		{
-			sprintf(usernmae, "test%05d", db.makeId());
+			sprintf(username, "test%05d", db.makeId());
 			sprintf(nickname, "abc%05d", db.makeId());
-			db.add_user(usernmae, "mm123456", nickname, i % 2);
+			if (db.add_user(username, "mm123456", nickname, i % 2) > 0)
+			{
+				//CELLLog_Info(username);
+			}
 		}
-
 		auto t = timestamp.getElapsedSecond();
-		CELLLog_Info("count=%d, time=%f, avg=%f, sec=%f", count, t, t / count, count / t);
+		CELLLog_Info("%d   count=%d,  time=%f,      %f,      %f", n, count, t, t / count, count / t);
 	}
+	CELLLog_Info("db.add_user %f", timestamp00.getElapsedSecond());
+	CELLLog_Info("#####################");
+	CELLLog_Info("db.hasByKV");
+	for (int n = 0; n < nMax; n++)
+	{
+		Timestamp timestamp;
+		for (int i = 0; i < count; i++)
+		{
+			sprintf(username, "test%05d", 100000+i+1+(n*count));
+			if (db.hasByKV("user_info", "username", username))
+			{
+				//CELLLog_Info(username);
+			}
+		}
+		auto t = timestamp.getElapsedSecond();
+		CELLLog_Info("%d   count=%d,  time=%f,      %f,      %f", n, count, t, t / count, count / t);
+	}
+	CELLLog_Info("db.hasByKV %f", timestamp00.getElapsedSecond());
+	CELLLog_Info("#####################");
+	CELLLog_Info("db.findByKV");
+	for (int n = 0; n < nMax; n++)
+	{
+		Timestamp timestamp;
+		for (int i = 0; i < count; i++)
+		{
+			sprintf(username, "test%05d", 100000 + i + 1 + (n*count));
+			neb::CJsonObject ret;
+			if (db.findByKV("password,nickname","user_info", "username", username, ret))
+			{
+				//CELLLog_Info(username);
+			}
+		}
+		auto t = timestamp.getElapsedSecond();
+		CELLLog_Info("%d   count=%d,  time=%f,      %f,      %f", n, count, t, t / count, count / t);
+	}
+	CELLLog_Info("db.findByKV %f", timestamp00.getElapsedSecond());
+	CELLLog_Info("#####################");
+	CELLLog_Info("db.updateByKV");
+	int mm = Time::system_clock_now() % 100000;
+	for (int n = 0; n < nMax; n++)
+	{
+		Timestamp timestamp;
+		for (int i = 0; i < count; i++)
+		{
+			sprintf(username, "test%05d", 100000 + i + 1 + (n*count));
+			sprintf(nickname, "abc%05d", mm);
+			if (db.updateByKV("user_info", "username", username, "password", nickname))
+			{
+				//CELLLog_Info("%s >> %s", username, nickname);
+			}
+		}
+		auto t = timestamp.getElapsedSecond();
+		CELLLog_Info("%d   count=%d,  time=%f,      %f,      %f", n, count, t, t / count, count / t);
+	}
+	CELLLog_Info("db.updateByKV %f", timestamp00.getElapsedSecond());
+	CELLLog_Info("#####################");
+	CELLLog_Info("db.deleteByKV");
+	for (int n = 0; n < nMax; n++)
+	{
+		Timestamp timestamp;
+		for (int i = 0; i < count; i++)
+		{
+			sprintf(username, "test%05d", 100000 + i + 1 + (n*count));
+			if (db.deleteByKV("user_info", "username", username))
+			{
+				//CELLLog_Info(username);
+			}
+		}
+		auto t = timestamp.getElapsedSecond();
+		CELLLog_Info("%d   count=%d,  time=%f,      %f,      %f", n, count, t, t / count, count / t);
+	}
+	CELLLog_Info("db.deleteByKV %f", timestamp00.getElapsedSecond());
+	//提交事务
+	db.execDML("commit;");
 
-	db.execDML("commit");
 	system("pause");
-
-
 	return 0;
-	db.deleteByKV("user_info", "sex", 1);
+	////////////////////
+	db.deleteByKV2("user_info", "state", 0, "sex", 0);
 	if (db.hasByKV("user_info", "username", "user001"))
 	{
 		CELLLog_Info("has_username user001 true");
