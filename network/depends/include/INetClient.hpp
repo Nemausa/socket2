@@ -5,6 +5,7 @@
 #include"CJsonObject.hpp"
 #include"Config.hpp"
 #include"Timestamp.hpp"
+#include "INetStateCode.hpp"
 
 namespace doyou {
 	namespace io {
@@ -72,17 +73,30 @@ namespace doyou {
 					}
 
 					//响应
-					bool is_resp = false;
-					if (json.Get("is_resp", is_resp) && is_resp)
+					int msg_type = 0;
+					if (!json.Get("type", msg_type))
 					{
-						on_net_msg_do(msgId, json);
+						CELLLog_Error("not found key<type>.");
 						return;
 					}
 
-					//请求
-					bool is_req = false;
-					bool is_push = false;
-					if ((json.Get("is_req", is_req) && is_req) || (json.Get("is_push", is_push) && is_push))
+
+					if (msg_type_resp == msg_type)
+					{
+						int msgId = 0;
+						if (!json.Get("msgId", msgId))
+						{
+							CELLLog_Error("not found key<%s>.", "msgId");
+							return;
+						}
+
+						on_net_msg_do(msgId, json);
+						return;
+					}
+					
+
+					//请求或推送消息
+					if (msg_type_req == msg_type || msg_type_push == msg_type)
 					{
 						std::string cmd;
 						if (!json.Get("cmd", cmd))
@@ -178,7 +192,7 @@ namespace doyou {
 
 				neb::CJsonObject msg;
 				msg.Add("cmd", cmd);
-				msg.Add("is_req", true, true);
+				msg.Add("type", msg_type_req);
 				msg.Add("msgId", ++msgId);
 				msg.Add("time", (int64)Time::system_clock_now());
 				msg.Add("data", data);
@@ -194,7 +208,7 @@ namespace doyou {
 				
 				neb::CJsonObject msg;
 				msg.Add("cmd", cmd);
-				msg.Add("is_req", true, true);
+				msg.Add("type", msg_type_req);
 				msg.Add("msgId", ++msgId);
 				_map_request_call[msgId] = call;
 
@@ -212,7 +226,7 @@ namespace doyou {
 				ret.Add("state", state);
 				ret.Add("msgId", msgId);
 				ret.Add("clientId", clientId);
-				ret.Add("is_resp", true, true);
+				ret.Add("type", msg_type_resp);
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
@@ -233,7 +247,7 @@ namespace doyou {
 				ret.Add("state", state);
 				ret.Add("cmd", cmd);
 				ret.Add("clientId", clientId);
-				ret.Add("is_push", true, true);
+				ret.Add("type", msg_type_push);
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 

@@ -3,6 +3,7 @@
 
 #include"WebSocketClientS.hpp"
 #include"CJsonObject.hpp"
+#include "INetStateCode.hpp"
 
 namespace doyou {
 	namespace io {
@@ -56,6 +57,7 @@ namespace doyou {
 				neb::CJsonObject ret;
 				ret.Add("msgId", msgId);
 				ret.Add("is_resp", true, true);
+				ret.Add("type", msg_type_resp);
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
@@ -74,7 +76,7 @@ namespace doyou {
 
 				neb::CJsonObject ret;
 				ret.Add("msgId", msgId);
-				ret.Add("is_resp", true, true);
+				ret.Add("type", msg_type_resp);
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
@@ -92,7 +94,7 @@ namespace doyou {
 				}
 
 				ret.Add("msgId", msgId);
-				ret.Add("is_resp", true, true);
+				ret.Add("type", msg_type_resp);
 				ret.Add("time", (int64)Time::system_clock_now());
 
 				std::string retStr = ret.ToString();

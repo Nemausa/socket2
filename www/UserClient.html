@@ -63,6 +63,10 @@
     </script>
     <!--业务对象-->
     <script>
+        msg_type_req  =1;
+        msg_type_resp =2;
+        msg_type_push =3;
+        
         class UserClient
         {
             constructor()
@@ -115,7 +119,7 @@
                     try {
                         //收到的json字符串转换为json对象
                         var jsonObj = JSON.parse(evt.data);
-                        if(jsonObj.is_resp)
+                        if(jsonObj.type == msg_type_resp)
                         {
                             //查找msgId有没有对应的回调函数
                             if(self.msg_callback.hasOwnProperty(jsonObj.msgId))
@@ -125,7 +129,7 @@
                                 delete(self.msg_callback[jsonObj.msgId]);
                             }
                         }
-                        else if(jsonObj.is_push)
+                        else if(jsonObj.type == msg_type_push)
                         {
                             // add_log_msg(jsonObj.cmd);
                              //查找msgId有没有对应的回调函数
@@ -152,7 +156,7 @@
                 }
                 var jsonObj = {
                     cmd:cmdStr,
-                    is_req:true,
+                    type:msg_type_req,
                     msgId:++this.msgId,
                     time:Date.now(),
                     data:jsonData

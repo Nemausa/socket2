@@ -89,11 +89,17 @@ namespace doyou {
 					return;
 				}
 
+				int msg_type = 0;
+				if (!json.Get("type", msg_type))
+				{
+					CELLLog_Error("not found key<type>.");
+					return;
+				}
+
 				
 				//·þÎñ¶ËÏìÓ¦
-				bool is_resp = false;
-				bool is_push = false;
-				if ((json.Get("is_resp", is_resp) && is_resp) || (json.Get("is_push", is_push) && is_push))
+
+				if (msg_type_resp==msg_type || msg_type_push == msg_type)
 				{
 					if (!pWSClient->is_ss_link())
 					{
@@ -122,8 +128,7 @@ namespace doyou {
 					return;
 				}
 
-				bool is_req = false;
-				if (json.Get("is_req", is_req) && is_req)
+				if (msg_type_req == msg_type)
 				{
 					std::string cmd;
 					if (!json.Get("cmd", cmd))
@@ -143,7 +148,6 @@ namespace doyou {
 					return;
 				}
 
-				CELLLog_Error("INetServer::OnNetMsgWS:: is_req=false,  is_resp=false.");
 			}
 
 			void Init()

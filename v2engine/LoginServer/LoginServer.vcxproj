@@ -167,6 +167,7 @@
     <ClInclude Include="..\..\network\depends\include\INetClient.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetTransfer.hpp" />
     <ClInclude Include="..\..\network\depends\include\LoginServer.hpp" />
+    <ClInclude Include="..\..\network\depends\include\INetStateCode.hpp" />
     <ClInclude Include="..\..\network\depends\include\UserManager.hpp" />
     <ClInclude Include="..\..\network\depends\json\cJSON.h" />
     <ClInclude Include="..\..\network\depends\json\CJsonObject.hpp" />
