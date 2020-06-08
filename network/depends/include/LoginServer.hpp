@@ -38,6 +38,16 @@ namespace doyou {
 			}
 
 		private:
+
+			const std::string make_token(int64 userId, int clientId)
+			{
+				std::stringstream ss;
+				ss << Time::getNowInMilliSec() <<'@'<< userId <<'@'<< clientId;
+				gloox::SHA sha1;
+				sha1.feed(ss.str());
+				return sha1.hex();
+			}
+
 			void onopen_csGate(INetClient* client, neb::CJsonObject& msg)
 			{
 				neb::CJsonObject json;
@@ -69,8 +79,86 @@ namespace doyou {
 					CELLLog_Error("not found key<%s>.", "msgId");
 					return;
 				}
+				//当前请求字段获取与验证
+				std::string username;
+				std::string password;
+				{
+					if (!msg["data"].Get("username", username))
+					{
+						client->resp_error(clientId, msgId, "not found key <username>.");
+						return;
+					}
 
-				client->response(clientId, msgId, "login successs.");
+					if (username.empty())
+					{
+						client->resp_error(clientId, msgId, "<username> can not be empty!");
+						return;
+					}
+					//正则表达式
+					std::regex reg1("^[0-9a-zA-Z]{6,16}$");
+					if (!regex_match(username, reg1))
+					{
+						client->resp_error(clientId, msgId, "<username> format is incorrect!");
+						return;
+					}
+
+					if (!msg["data"].Get("password", password))
+					{
+						client->resp_error(clientId, msgId, "not found key<password>.");
+						return;
+					}
+
+					if (password.empty())
+					{
+						client->resp_error(clientId, msgId, "<password> can not be empty!");
+						return;
+					}
+
+					//正则表达式
+					if (!regex_match(password, reg1))
+					{
+						client->resp_error(clientId, msgId, "<password> format is incorrect!");
+						return;
+					}
+				}
+
+				CELLLog_Info("LoginServer:cs_msg_login:msgId=%d username=%s password=%s", msgId, username.c_str(), password.c_str());
+
+				neb::CJsonObject users;
+				_dbuser.findByKV("password,userId", "user_info", "username", username.c_str(), users);
+				if(users.GetArraySize()<1)
+				{
+					client->resp_error(clientId, msgId, "<username does not exists!");
+					return;
+				}
+
+				auto password_now = users[0]("password");
+				if (password_now != password)
+				{
+					client->resp_error(clientId, msgId, "password is wrong");
+					return;
+				}
+
+
+				int64 userId = 0;
+				if (!users[0].Get("userId", userId))
+				{
+					CELLLog_Info("unknow error.");
+					return;
+				}
+
+				// 判断是否登录过
+				// 在线验证
+				{
+					//通知当前用户有人在其他地方登录
+					//将已登录用户踢下线
+				}
+
+				//签发令牌 生成登录令牌
+				auto token = make_token(userId, clientId);
+				
+
+				client->response(clientId, msgId, token);
 			}
 
 			void cs_msg_register(INetClient* client, neb::CJsonObject& msg)

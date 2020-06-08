@@ -23,6 +23,7 @@
             <br>
             <button onclick="onclick_btn_register()">注册</button>
             <button onclick="onclick_btn_change_pw()">改密</button>
+            <button onclick="onclick_btn_login()">登录</button>
             <br><br>
             <textarea id="msgbox" style="resize:none;" rows="20" cols="40" >
             </textarea>
@@ -207,6 +208,22 @@
                         add_log_msg("修改成功："+msg.data);
                     else
                         add_log_msg("修改失败："+msg.data);
+                });
+        }
+
+        function onclick_btn_login() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            user.request("cs_msg_login",
+                {
+                    username:username,
+                    password:password
+                }
+                ,function(msg){
+                    if(0 == msg.state)
+                        add_log_msg("登录成功"+msg.data);
+                    else
+                        add_log_msg("登录失败："+msg.data);
                 });
         }
     </script>
