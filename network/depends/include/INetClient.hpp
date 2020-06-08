@@ -71,20 +71,6 @@ namespace doyou {
 						return;
 					}
 
-					int msgId = 0;
-					if (!json.Get("msgId", msgId))
-					{
-						CELLLog_Error("not found key<%s>.", "msgId");
-						return;
-					}
-
-					int64 time = 0;
-					if (!json.Get("time", time))
-					{
-						CELLLog_Error("not found key<%s>.", "time");
-						return;
-					}
-
 					//响应
 					bool is_resp = false;
 					if (json.Get("is_resp", is_resp) && is_resp)
@@ -95,7 +81,8 @@ namespace doyou {
 
 					//请求
 					bool is_req = false;
-					if (json.Get("is_req", is_req) && is_req)
+					bool is_push = false;
+					if ((json.Get("is_req", is_req) && is_req) || (json.Get("is_push", is_push) && is_push))
 					{
 						std::string cmd;
 						if (!json.Get("cmd", cmd))

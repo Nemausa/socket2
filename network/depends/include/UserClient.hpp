@@ -18,7 +18,7 @@ namespace doyou {
 
 				_csGate.reg_msg_call("onopen", std::bind(&UserClient::onopen_csGate, this, std::placeholders::_1, std::placeholders::_2));
 
-				//_csGate.reg_msg_call("cs_msg_login", std::bind(&UserClient::cs_msg_login, this, std::placeholders::_1, std::placeholders::_2));
+				_csGate.reg_msg_call("sc_msg_logout", std::bind(&UserClient::sc_msg_logout, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			void Run()
@@ -35,22 +35,47 @@ namespace doyou {
 			void onopen_csGate(INetClient* client, neb::CJsonObject& msg)
 			{
 				neb::CJsonObject json;
-				json.Add("username", "test001");
-				json.Add("password", "abc1234");
+				json.Add("username", "testcc0");
+				json.Add("password", "testmm0");
 
-				client->request("cs_msg_register", json, [](INetClient* client, neb::CJsonObject& msg) {
-					CELLLog_Info(msg("data").c_str());
+				client->request("cs_msg_login", json, [](INetClient* client, neb::CJsonObject& msg) 
+				{
+					int state = 0;
+					if (!msg.Get("state", state))
+					{
+						CELLLog_Info("not found key <state>");
+						return;
+					}
+
+					if (state != 0)
+					{
+						CELLLog_Error("cs_msg_login error <state=%d> msg:%s", state, msg("data").c_str());
+						return;
+					}
+					int64_t userId = 0;
+					if (!msg["data"].Get("userId", userId))
+					{
+						CELLLog_Info("not found key <userId>");
+						return;
+					}
+
+					std::string token;
+					if (!msg["data"].Get("token", token))
+					{
+						CELLLog_Info("not found key <token>");
+						return;
+					}
+
+					CELLLog_Info("login:userId=%lld, token=%s", userId, token.c_str());
 				});
 			}
 
-			/*void cs_msg_login(INetClient* client, neb::CJsonObject& msg)
+			void sc_msg_logout(INetClient* client, neb::CJsonObject& msg)
 			{
-				CELLLog_Info("UserClient::cs_msg_login");
+				CELLLog_Info("Info logout:%s", msg("data").c_str());
 
-				neb::CJsonObject ret;
-				ret.Add("data", "login successs.");
-				client->response(msg, ret);
-			}*/
+				
+			}
 		};
 	}
 }

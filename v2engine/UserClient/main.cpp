@@ -11,13 +11,21 @@ int main(int argc, char* args[])
 	Log::Instance().setLogPath("UserClientLog", "w", false);
 	Config::Instance().Init(argc, args);
 
-	UserClient client;
-	client.Init();
+	const int naxx = 1;
+
+	UserClient clients[naxx];
+	for (size_t i = 0; i < naxx; i++)
+	{
+		clients[i].Init();
+	}
+
 	while (true)
 	{
-		client.Run();
+		for (size_t i = 0; i < naxx; i++)
+		{
+			clients[i].Run();
+		}
 	}
-	client.Close();
 
 	////在主线程中等待用户输入命令
 	//while (true)
