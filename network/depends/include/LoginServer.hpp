@@ -4,6 +4,7 @@
 #include<regex>
 #include"INetClient.hpp"
 #include "DBUser.hpp"
+#include "UserManager.hpp"
 
 namespace doyou {
 	namespace io {
@@ -12,6 +13,7 @@ namespace doyou {
 		private:
 			INetClient _csGate;
 			DBUser _dbuser;
+			UserManager _userManager;
 		public:
 			void Init()
 			{
@@ -149,16 +151,31 @@ namespace doyou {
 
 				// 判断是否登录过
 				// 在线验证
+				auto user = _userManager.get_by_userId(userId);
+				if(user)
 				{
 					//通知当前用户有人在其他地方登录
+					//push clientId cmd msg
+					client->push(user->clientId, "sc_msg_logout", "Someone is trying to login this account!");
 					//将已登录用户踢下线
+					_userManager.remove(user);
 				}
 
 				//签发令牌 生成登录令牌
 				auto token = make_token(userId, clientId);
+				//记录令牌关联用户数据
+				if (!_userManager.add(token, userId, clientId))
+				{
+					CELLLog_Info("userManager add failed!");
+					client->resp_error(clientId, msgId, "userManager add failed!");
+					return;
+				}
 				
-
-				client->response(clientId, msgId, token);
+				neb::CJsonObject json;
+				json.Add("userId", userId);
+				json.Add("token", token);
+				//返回登录结果
+				client->response(clientId, msgId, json);
 			}
 
 			void cs_msg_register(INetClient* client, neb::CJsonObject& msg)

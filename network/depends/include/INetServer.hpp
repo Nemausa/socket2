@@ -89,23 +89,11 @@ namespace doyou {
 					return;
 				}
 
-				int msgId = 0;
-				if (!json.Get("msgId", msgId))
-				{
-					CELLLog_Error("not found key<%s>.", "msgId");
-					return;
-				}
-
-				int64 time = 0;
-				if (!json.Get("time", time))
-				{
-					CELLLog_Error("not found key<%s>.", "time");
-					return;
-				}
 				
 				//服务端响应
 				bool is_resp = false;
-				if (json.Get("is_resp", is_resp) && is_resp)
+				bool is_push = false;
+				if ((json.Get("is_resp", is_resp) && is_resp) || (json.Get("is_push", is_push) && is_push))
 				{
 					if (!pWSClient->is_ss_link())
 					{
@@ -135,14 +123,7 @@ namespace doyou {
 				}
 
 				bool is_req = false;
-				if (!json.Get("is_req", is_req))
-				{
-					CELLLog_Error("not found key<%s>.", "is_req");
-					return;
-				}
-				//用户端请求
-				//服务端请求
-				if (is_req)
+				if (json.Get("is_req", is_req) && is_req)
 				{
 					std::string cmd;
 					if (!json.Get("cmd", cmd))

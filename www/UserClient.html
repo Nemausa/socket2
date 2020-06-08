@@ -75,6 +75,7 @@
                 this.msgId = 0;
                 //消息回调函数表<k=id,v=callback>
                 this.msg_callback = {};
+                this.push_callback = {};
                 //心跳定时任务的id
                 this.intervalId = null;
             }
@@ -114,13 +115,28 @@
                     try {
                         //收到的json字符串转换为json对象
                         var jsonObj = JSON.parse(evt.data);
-                        //查找msgId有没有对应的回调函数
-                        if(self.msg_callback.hasOwnProperty(jsonObj.msgId))
+                        if(jsonObj.is_resp)
                         {
-                            var call = self.msg_callback[jsonObj.msgId];
-                            call(jsonObj);
-                            delete(self.msg_callback[jsonObj.msgId]);
+                            //查找msgId有没有对应的回调函数
+                            if(self.msg_callback.hasOwnProperty(jsonObj.msgId))
+                            {
+                                var call = self.msg_callback[jsonObj.msgId];
+                                call(jsonObj);
+                                delete(self.msg_callback[jsonObj.msgId]);
+                            }
                         }
+                        else if(jsonObj.is_push)
+                        {
+                            // add_log_msg(jsonObj.cmd);
+                             //查找msgId有没有对应的回调函数
+                             if(self.push_callback.hasOwnProperty(jsonObj.cmd))
+                            {
+                                var call = self.push_callback[jsonObj.cmd];
+                                call(jsonObj);
+                                
+                            }
+                        }
+                        
                     } catch (e) {
                         add_log_msg("websocket.onmessage: " + e);
                         return;
@@ -155,6 +171,11 @@
                 if(this.websocket)
                     this.websocket.close();
             }
+
+            reg_msg_call(cmsStr, callback)
+            {
+                this.push_callback[cmsStr] = callback;
+            }
             //注册账号
             register(username, password,nickname,sex)
             {
@@ -172,11 +193,18 @@
                         add_log_msg("注册失败："+msg.data);
                 });
             }
+
+
         }
     </script>
     <!--业务逻辑-->
     <script>
         var user = new UserClient();
+        
+        user.reg_msg_call("sc_msg_logout", function(msg){
+            add_log_msg("登出账号： "+msg.data);
+        });
+
         function onclick_btn_connect() {
             user.connect('ws://127.0.0.1:4567');
         }
@@ -221,9 +249,9 @@
                 }
                 ,function(msg){
                     if(0 == msg.state)
-                        add_log_msg("登录成功"+msg.data);
+                        add_log_msg("登录成功"+msg.data.token);
                     else
-                        add_log_msg("登录失败："+msg.data);
+                        add_log_msg("登录失败："+msg.data.token);
                 });
         }
     </script>

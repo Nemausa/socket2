@@ -184,7 +184,8 @@ namespace doyou {
 				return false;
 			}
 
-			void request(const std::string& cmd, neb::CJsonObject& data)
+			template<class T>
+			void request(const std::string& cmd, const T& data)
 			{
 				_time2heart.update();
 
@@ -199,7 +200,8 @@ namespace doyou {
 				_client.writeText(retStr.c_str(), retStr.length());
 			}
 
-			void request(const std::string& cmd, neb::CJsonObject& data, NetEventCall call)
+			template<class T>
+			void request(const std::string& cmd, const T& data, NetEventCall call)
 			{
 				_time2heart.update();
 				
@@ -216,7 +218,8 @@ namespace doyou {
 				_client.writeText(retStr.c_str(), retStr.length());
 			}
 
-			void response(int clientId, int msgId, const std::string& data, int state = 0)
+			template<class T>
+			void response(int clientId, int msgId,const T& data, int state = 0)
 			{
 				neb::CJsonObject ret;
 				ret.Add("state", state);
@@ -230,78 +233,26 @@ namespace doyou {
 				_client.writeText(retStr.c_str(), retStr.length());
 			}
 
-			void response(int clientId, int msgId, neb::CJsonObject& data, int state = 0)
-			{
-				neb::CJsonObject ret;
-				ret.Add("state", state);
-				ret.Add("msgId", msgId);
-				ret.Add("clientId", clientId);
-				ret.Add("is_resp", true, true);
-				ret.Add("time", (int64)Time::system_clock_now());
-				ret.Add("data", data);
-
-				std::string retStr = ret.ToString();
-				_client.writeText(retStr.c_str(), retStr.length());
-			}
-
-			void resp_error(int clientId, int msgId, const std::string& data, int state = 1)
+			template<class T>
+			void resp_error(int clientId, int msgId, const T& data, int state = 1)
 			{
 				response(clientId, msgId, data, state);
 			}
 
-			/*
-			void response(neb::CJsonObject& msg, std::string data)
+			template<class T>
+			void push(int clientId, const std::string& cmd,const T& data, int state = 0)
 			{
-				int msgId = 0;
-				if (!msg.Get("msgId", msgId))
-				{
-					CELLLog_Error("not found key<%s>.", "msgId");
-					return;
-				}
-
-				int clientId = 0;
-				if (!msg.Get("clientId", clientId))
-				{
-					CELLLog_Error("not found key<%s>.", "clientId");
-					return;
-				}
-
 				neb::CJsonObject ret;
-				ret.Add("msgId", msgId);
+				ret.Add("state", state);
+				ret.Add("cmd", cmd);
 				ret.Add("clientId", clientId);
-				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
+				ret.Add("is_push", true, true);
+				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
 				std::string retStr = ret.ToString();
 				_client.writeText(retStr.c_str(), retStr.length());
 			}
-
-			void response(neb::CJsonObject& msg, neb::CJsonObject& ret)
-			{
-				int msgId = 0;
-				if (!msg.Get("msgId", msgId))
-				{
-					CELLLog_Error("not found key<%s>.", "msgId");
-					return;
-				}
-
-				int clientId = 0;
-				if (!msg.Get("clientId", clientId))
-				{
-					CELLLog_Error("not found key<%s>.", "clientId");
-					return;
-				}
-
-				ret.Add("msgId", msgId);
-				ret.Add("clientId", clientId);
-				ret.Add("is_resp", true, true);
-				ret.Add("time", Time::system_clock_now());
-
-				std::string retStr = ret.ToString();
-				_client.writeText(retStr.c_str(), retStr.length());
-			}
-			*/
 		};
 	}
 }
