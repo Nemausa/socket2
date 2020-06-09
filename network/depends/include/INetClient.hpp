@@ -18,19 +18,26 @@ namespace doyou {
 			TcpWebSocketClient _client;
 			//
 			Timestamp _time2heart;
+			//发送请求后_timeout_dt毫秒会触发超时
+			time_t _timeout_dt = 5000;
 			//
 			std::string _link_name;
 			//
 			std::string _url;
 			//
-			int msgId = 0;
+			int _msgId = 0;
 		private:
 			//
 			typedef std::function<void(INetClient*, neb::CJsonObject&)> NetEventCall;
+			struct NetEventCallData 
+			{
+				NetEventCall callFun = nullptr;
+				time_t dt = 0;
+			};
 			//
 			std::map<std::string, NetEventCall> _map_msg_call;
 			//
-			std::map<int, NetEventCall> _map_request_call;
+			std::map<int, NetEventCallData> _map_request_call;
 		public:
 			void connect(const char* link_name,const char* url)
 			{
@@ -132,6 +139,7 @@ namespace doyou {
 			{
 				if (_client.isRun())
 				{
+					check_timeout();
 					if (_time2heart.getElapsedSecond() > 5.0)
 					{
 						_time2heart.update();
@@ -156,6 +164,37 @@ namespace doyou {
 				_client.Close();
 			}
 
+			void timeout(time_t dt)
+			{
+				_timeout_dt = dt;
+			}
+
+			void check_timeout()
+			{
+				if (0 == _timeout_dt)
+					return;
+
+				time_t now = Time::system_clock_now();
+				for (auto itr = _map_request_call.begin(); itr != _map_request_call.end();)
+				{
+					if (now - itr->second.dt >= _timeout_dt)
+					{
+						//触发超时
+						neb::CJsonObject ret;
+						ret.Add("state", state_code_timeout);
+						ret.Add("data", "request timeout");
+						itr->second.callFun(this, ret);
+						//移除该请求的响应回调
+						auto itrold = itr;
+						++itr;
+						_map_request_call.erase(itrold);
+						continue;
+					}
+
+					++itr;
+				}
+			}
+
 			void reg_msg_call(std::string cmd, NetEventCall call)
 			{
 				_map_msg_call[cmd] = call;
@@ -178,7 +217,7 @@ namespace doyou {
 				auto itr = _map_request_call.find(msgId);
 				if (itr != _map_request_call.end())
 				{
-					itr->second(this, msgJson);
+					itr->second.callFun(this, msgJson);
 					_map_request_call.erase(itr);
 					return true;
 				}
@@ -204,7 +243,7 @@ namespace doyou {
 				neb::CJsonObject msg;
 				msg.Add("cmd", cmd);
 				msg.Add("type", msg_type_req);
-				msg.Add("msgId", ++msgId);
+				msg.Add("msgId", ++_msgId);
 				msg.Add("time", (int64)Time::system_clock_now());
 				msg.Add("data", data);
 
@@ -217,7 +256,10 @@ namespace doyou {
 				if (!request(cmd, data))
 					return false;
 				
-				_map_request_call[msgId] = call;
+				NetEventCallData calldata;
+				calldata.callFun = call;
+				calldata.dt = Time::system_clock_now();
+				_map_request_call[_msgId] = calldata;
 				return true;
 			}
 
@@ -236,7 +278,7 @@ namespace doyou {
 			}
 
 			template<class T>
-			void response(neb::CJsonObject& msg, const T& data, int state = error_code_ok)
+			void response(neb::CJsonObject& msg, const T& data, int state = state_code_ok)
 			{
 				int clientId = 0;
 				if (!msg.Get("clientId", clientId))
@@ -256,13 +298,13 @@ namespace doyou {
 			}
 
 			template<class T>
-			void resp_error(neb::CJsonObject& msg, const T& data, int state = error_code_error)
+			void resp_error(neb::CJsonObject& msg, const T& data, int state = state_code_error)
 			{
 				response(msg, data, state);
 			}
 
 			template<class T>
-			bool  push(int clientId, const std::string& cmd,const T& data, int state = error_code_ok)
+			bool  push(int clientId, const std::string& cmd,const T& data, int state = state_code_ok)
 			{
 				neb::CJsonObject ret;
 				ret.Add("state", state);

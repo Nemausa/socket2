@@ -19,9 +19,12 @@ namespace doyou
 #define msg_type_resp 2
 #define msg_type_push 3
 
-#define error_code_ok 0
-#define error_code_error 1
-#define error_code_c 2
+#define state_code_ok 0
+#define state_code_error 1
+#define state_code_timeout 2
+#define state_code_undefine_cmd 3
+#define state_code_server_busy 4
+#define state_code_server_off 5
 
 	}
 }

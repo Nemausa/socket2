@@ -82,10 +82,23 @@ namespace doyou {
 			void on_other_msg(Server* server, INetClientS* client, std::string& cmd, neb::CJsonObject& msg)
 			{
 				auto str = msg.ToString();
-				if (!_transfer.on_net_msg_do(cmd, str))
+				int ret = _transfer.on_net_msg_do(cmd, str);
+				if (state_code_undefine_cmd == ret)
 				{
 					CELLLog_Info("on_other_msg: transfer not found cmd<%s>.", cmd.c_str());
+					client->response(msg, "undefine cmd", state_code_undefine_cmd);
 				}
+				else if (state_code_server_busy == ret)
+				{
+					CELLLog_Info("on_other_msg: transfer not found cmd<%s>.", cmd.c_str());
+					client->response(msg, "server busy", state_code_server_busy);
+				}
+				else if (state_code_server_off == ret)
+				{
+					CELLLog_Info("on_other_msg: transfer not found cmd<%s>.", cmd.c_str());
+					client->response(msg, "server offline", state_code_server_off);
+				}
+				
 			}
 
 			void on_client_leave(INetClientS* client)

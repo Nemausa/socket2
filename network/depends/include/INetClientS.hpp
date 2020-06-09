@@ -54,7 +54,7 @@ namespace doyou {
 
 
 			template<class T>
-			void response(neb::CJsonObject& msg, const T& data)
+			void response(neb::CJsonObject& msg, const T& data, int state = state_code_ok)
 			{
 				int msgId = 0;
 				if (!msg.Get("msgId", msgId))
@@ -65,6 +65,7 @@ namespace doyou {
 
 				neb::CJsonObject ret;
 				ret.Add("msgId", msgId);
+				ret.Add("state", state);
 				ret.Add("type", msg_type_resp);
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
