@@ -52,20 +52,9 @@ namespace doyou {
 				_is_ss_link = b;
 			}
 
-			void response(int msgId, std::string data)
-			{
-				neb::CJsonObject ret;
-				ret.Add("msgId", msgId);
-				ret.Add("is_resp", true, true);
-				ret.Add("type", msg_type_resp);
-				ret.Add("time", (int64)Time::system_clock_now());
-				ret.Add("data", data);
 
-				std::string retStr = ret.ToString();
-				this->writeText(retStr.c_str(), retStr.length());
-			}
-
-			void response(neb::CJsonObject& msg, std::string data)
+			template<class T>
+			void response(neb::CJsonObject& msg, const T& data)
 			{
 				int msgId = 0;
 				if (!msg.Get("msgId", msgId))
@@ -84,22 +73,6 @@ namespace doyou {
 				this->writeText(retStr.c_str(), retStr.length());
 			}
 
-			void response(neb::CJsonObject& msg, neb::CJsonObject& ret)
-			{
-				int msgId = 0;
-				if (!msg.Get("msgId", msgId))
-				{
-					CELLLog_Error("not found key<%s>.", "msgId");
-					return;
-				}
-
-				ret.Add("msgId", msgId);
-				ret.Add("type", msg_type_resp);
-				ret.Add("time", (int64)Time::system_clock_now());
-
-				std::string retStr = ret.ToString();
-				this->writeText(retStr.c_str(), retStr.length());
-			}
 		};
 	}
 }

@@ -19,9 +19,9 @@ namespace doyou
 #define msg_type_resp 2
 #define msg_type_push 3
 
-#define error_code_a 1
-#define error_code_b 2
-#define error_code_c 3
+#define error_code_ok 0
+#define error_code_error 1
+#define error_code_c 2
 
 	}
 }

@@ -179,17 +179,28 @@ namespace doyou {
 				if (itr != _map_request_call.end())
 				{
 					itr->second(this, msgJson);
+					_map_request_call.erase(itr);
 					return true;
 				}
 				CELLLog_Info("%s::INetClient::on_net_msg_do not found msgId<%d>.", _link_name.c_str(), msgId);
 				return false;
 			}
 
-			template<class T>
-			void request(const std::string& cmd, const T& data)
+			 bool transfer(neb::CJsonObject& msg)
 			{
+				std::string resStr = msg.ToString();
+				if (SOCKET_ERROR == _client.writeText(resStr.c_str(), resStr.length()))
+				{
+					CELLLog_Error("INetClient::transfer::writeText SOCKET ERROR");
+					return false;
+				}
 				_time2heart.update();
+				return true;
+			}
 
+			template<class T>
+			bool request(const std::string& cmd, const T& data)
+			{
 				neb::CJsonObject msg;
 				msg.Add("cmd", cmd);
 				msg.Add("type", msg_type_req);
@@ -197,30 +208,21 @@ namespace doyou {
 				msg.Add("time", (int64)Time::system_clock_now());
 				msg.Add("data", data);
 
-				std::string retStr = msg.ToString();
-				_client.writeText(retStr.c_str(), retStr.length());
+				return transfer(msg);
 			}
 
 			template<class T>
-			void request(const std::string& cmd, const T& data, NetEventCall call)
+			bool request(const std::string& cmd, const T& data, NetEventCall call)
 			{
-				_time2heart.update();
+				if (!request(cmd, data))
+					return false;
 				
-				neb::CJsonObject msg;
-				msg.Add("cmd", cmd);
-				msg.Add("type", msg_type_req);
-				msg.Add("msgId", ++msgId);
 				_map_request_call[msgId] = call;
-
-				msg.Add("time", (int64)Time::system_clock_now());
-				msg.Add("data", data);
-
-				std::string retStr = msg.ToString();
-				_client.writeText(retStr.c_str(), retStr.length());
+				return true;
 			}
 
 			template<class T>
-			void response(int clientId, int msgId,const T& data, int state = 0)
+			bool response(int clientId, int msgId,const T& data, int state = 0)
 			{
 				neb::CJsonObject ret;
 				ret.Add("state", state);
@@ -230,18 +232,37 @@ namespace doyou {
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
-				std::string retStr = ret.ToString();
-				_client.writeText(retStr.c_str(), retStr.length());
+				return transfer(ret);
 			}
 
 			template<class T>
-			void resp_error(int clientId, int msgId, const T& data, int state = 1)
+			void response(neb::CJsonObject& msg, const T& data, int state = error_code_ok)
 			{
+				int clientId = 0;
+				if (!msg.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found key<%s>.", "clientId");
+					return;
+				}
+
+				int msgId = 0;
+				if (!msg.Get("msgId", msgId))
+				{
+					CELLLog_Error("not found key<%s>.", "msgId");
+					return;
+				}
+				
 				response(clientId, msgId, data, state);
 			}
 
 			template<class T>
-			void push(int clientId, const std::string& cmd,const T& data, int state = 0)
+			void resp_error(neb::CJsonObject& msg, const T& data, int state = error_code_error)
+			{
+				response(msg, data, state);
+			}
+
+			template<class T>
+			bool  push(int clientId, const std::string& cmd,const T& data, int state = error_code_ok)
 			{
 				neb::CJsonObject ret;
 				ret.Add("state", state);
@@ -251,8 +272,7 @@ namespace doyou {
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
 
-				std::string retStr = ret.ToString();
-				_client.writeText(retStr.c_str(), retStr.length());
+				return transfer(ret);
 			}
 		};
 	}
