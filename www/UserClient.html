@@ -25,6 +25,9 @@
             <button onclick="onclick_btn_change_pw()">改密</button>
             <button onclick="onclick_btn_login()">登录</button>
             <br><br>
+            token<input type="text" id="token" />
+            <button onclick="onclick_btn_login_by_token()">token登录</button>
+            <br>
             <textarea id="msgbox" style="resize:none;" rows="20" cols="40" >
             </textarea>
     </div>
@@ -210,7 +213,21 @@
         });
 
         function onclick_btn_connect() {
-            user.connect('ws://127.0.0.1:4567');
+           // user.connect('ws://127.0.0.1:4567');
+           user.connect('ws://127.0.0.1:4567', function(self){
+                self.request("cs_reg_client",
+                {
+                    cckey:"ccmm00@123456"
+                }
+                ,function(msg){
+                    if(0==msg.state)
+                        add_log_msg("认证客户端成功： " + msg.data);
+                    else
+                        add_log_msg("认证客户端失败: " + msg.data);
+                });
+
+           });
+           
         }
 
         function onclick_btn_close() {
@@ -258,6 +275,22 @@
                         add_log_msg("登录失败："+msg.data.token);
                 });
         }
+
+        function onclick_btn_login_by_token() {
+            var token = document.getElementById("token").value;
+            add_log_msg("token:" + token);
+            user.request("cs_msg_login_by_token",
+                {
+                   token:token
+                }
+                ,function(msg){
+                    if(0 == msg.state)
+                        add_log_msg("登录成功"+msg.data.token);
+                    else
+                        add_log_msg("登录失败："+msg.data.token);
+                });
+        }
+    </script>
     </script>
 </body>
 </html>

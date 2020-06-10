@@ -9,7 +9,8 @@ namespace doyou {
 		{
 		private:
 			INetClient _csGate;
-			
+			std::string _token;
+			int64_t _userId;
 		public:
 			void Init()
 			{
@@ -17,7 +18,6 @@ namespace doyou {
 				_csGate.connect("csGate", csGate);
 
 				_csGate.reg_msg_call("onopen", std::bind(&UserClient::onopen_csGate, this, std::placeholders::_1, std::placeholders::_2));
-
 				_csGate.reg_msg_call("sc_msg_logout", std::bind(&UserClient::sc_msg_logout, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
@@ -34,11 +34,35 @@ namespace doyou {
 		private:
 			void onopen_csGate(INetClient* client, neb::CJsonObject& msg)
 			{
+				reg_client();
+			}
+
+			void reg_client()
+			{
+				neb::CJsonObject json;
+				json.Add("type", "Client");
+				json.Add("cckey", "ccmm00@123456");
+				if (!_token.empty())
+					json.Add("token", _token);
+
+				_csGate.request("cs_reg_client", json, [this](INetClient* client, neb::CJsonObject& msg) {
+
+					int state = state_code_ok;
+					if (!msg.Get("state", state)) { CELLLog_Error("not found key <state>"); return; }
+					if (state_code_ok != state) { CELLLog_Error("cs_msg_login error <state=%d> msg:%s", state, msg("data").c_str()); return; }
+
+					CELLLog_Info(msg("data").c_str());
+					login();
+				});
+			}
+
+			void login()
+			{
 				neb::CJsonObject json;
 				json.Add("username", "testcc0");
 				json.Add("password", "testmm0");
 
-				client->request("cs_msg_login", json, [](INetClient* client, neb::CJsonObject& msg) 
+				_csGate.request("cs_msg_login", json, [this](INetClient* client, neb::CJsonObject& msg)
 				{
 					int state = 0;
 					if (!msg.Get("state", state))
@@ -53,27 +77,28 @@ namespace doyou {
 						return;
 					}
 					int64_t userId = 0;
-					if (!msg["data"].Get("userId", userId))
+					if (!msg["data"].Get("userId", _userId))
 					{
 						CELLLog_Info("not found key <userId>");
 						return;
 					}
 
 					std::string token;
-					if (!msg["data"].Get("token", token))
+					if (!msg["data"].Get("token", _token))
 					{
 						CELLLog_Info("not found key <token>");
 						return;
 					}
 
-					CELLLog_Info("login:userId=%lld, token=%s", userId, token.c_str());
+					CELLLog_Info("login:userId=%lld, token=%s", _userId, _token.c_str());
 				});
 			}
 
 			void sc_msg_logout(INetClient* client, neb::CJsonObject& msg)
 			{
 				CELLLog_Info("Info logout:%s", msg("data").c_str());
-
+				_token.clear();
+				_userId = 0;
 				
 			}
 		};

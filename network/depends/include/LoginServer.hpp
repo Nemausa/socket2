@@ -26,6 +26,8 @@ namespace doyou {
 				_csGate.reg_msg_call("cs_msg_login", std::bind(&LoginServer::cs_msg_login, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_register", std::bind(&LoginServer::cs_msg_register, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_change_pw", std::bind(&LoginServer::cs_msg_change_pw, this, std::placeholders::_1, std::placeholders::_2));
+				_csGate.reg_msg_call("ss_msg_get_user_by_token", std::bind(&LoginServer::ss_msg_get_user_by_token, this, std::placeholders::_1, std::placeholders::_2));
+				_csGate.reg_msg_call("cs_msg_login_by_token", std::bind(&LoginServer::cs_msg_login_by_token, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			void Run()
@@ -60,8 +62,10 @@ namespace doyou {
 				json["apis"].Add("cs_msg_login");
 				json["apis"].Add("cs_msg_register");
 				json["apis"].Add("cs_msg_change_pw");
+				json["apis"].Add("ss_msg_get_user_by_token");
+				json["apis"].Add("cs_msg_login_by_token");
 
-				client->request("ss_reg_api", json, [](INetClient* client, neb::CJsonObject& msg) {
+				client->request("ss_reg_server", json, [](INetClient* client, neb::CJsonObject& msg) {
 					CELLLog_Info(msg("data").c_str());
 				});
 			}
@@ -151,6 +155,12 @@ namespace doyou {
 					//通知当前用户有人在其他地方登录
 					//push clientId cmd msg
 					client->push(user->clientId, "sc_msg_logout", "Someone is trying to login this account!");
+
+					// 通知网关用户已登出
+					neb::CJsonObject ret;
+					ret.Add("userId", userId);
+					ret.Add("clientId", clientId);
+					client->request("ss_msg_user_logout", ret);
 					//将已登录用户踢下线
 					_userManager.remove(user);
 				}
@@ -164,6 +174,12 @@ namespace doyou {
 					client->resp_error(msg,  "userManager add failed!");
 					return;
 				}
+				//通知网关用户已登录
+				neb::CJsonObject ret;
+				ret.Add("userId", userId);
+				ret.Add("token", token);
+				ret.Add("clientId", clientId);
+				client->request("ss_msg_user_login", ret);
 				
 				neb::CJsonObject json;
 				json.Add("userId", userId);
@@ -382,6 +398,107 @@ namespace doyou {
 				else {
 					client->resp_error(msg, "unkown error.");
 				}
+			}
+
+			void ss_msg_get_user_by_token(INetClient* client, neb::CJsonObject& msg)
+			{
+				std::string token;
+				{
+					if (!msg["data"].Get("token", token))
+					{
+						client->resp_error(msg, "not found token");
+						return;
+					}
+					if (token.empty())
+					{
+						client->resp_error(msg, "<token> can not be empyt!");
+						return;
+					}
+
+					CELLLog_Info("ss_msg_get_user_token: token<%s>", token);
+
+					// 判断是否登录过
+					// 在线验证
+					auto user = _userManager.get_by_token(token);
+					if (!user)
+					{
+						client->resp_error(msg, "invalid token");
+						return;
+					}
+					
+
+					neb::CJsonObject json;
+					json.Add("userId", user->userId);
+					json.Add("token", user->token);
+					json.Add("ClientId", user->clientId);
+					//返回登录结果
+					client->response(msg, json);
+				}
+			}
+
+			void cs_msg_login_by_token(INetClient* client, neb::CJsonObject& msg)
+			{
+				int clientId = 0;
+				if (!msg.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found key<%s>.", "clientId");
+					return;
+				}
+
+
+				std::string token;
+				if (!msg["data"].Get("token", token))
+				{
+					CELLLog_Info("unknow error token.");
+					return;
+				}
+
+				// 判断是否登录过
+				// 在线验证
+				auto user = _userManager.get_by_token(token);
+				if (!user)
+				{
+					client->resp_error(msg, "Invalid token!");
+					return;
+				}
+				int64_t userId = user->userId;
+
+				{
+					//通知当前用户有人在其他地方登录
+					//push clientId cmd msg
+					client->push(user->clientId, "sc_msg_logout", "Someone is trying to login this account!");
+
+					// 通知网关用户已登出
+					neb::CJsonObject ret;
+					ret.Add("userId", user->userId);
+					ret.Add("clientId", user->clientId);
+					ret.Add("token", user->token);
+					client->request("ss_msg_user_logout", ret);
+					//将已登录用户踢下线
+					_userManager.remove(user);
+				}
+
+				//签发令牌 生成登录令牌
+				token = make_token(userId, clientId);
+				//记录令牌关联用户数据
+				if (!_userManager.add(token, userId, clientId))
+				{
+					CELLLog_Info("userManager add failed!");
+					client->resp_error(msg, "userManager add failed!");
+					return;
+				}
+				//通知网关用户已登录
+				neb::CJsonObject ret;
+				ret.Add("userId", userId);
+				ret.Add("token", token);
+				ret.Add("clientId", clientId);
+				client->request("ss_msg_user_login", ret);
+
+				neb::CJsonObject json;
+				json.Add("userId", userId);
+				json.Add("token", token);
+				//返回登录结果
+				client->response(msg, json);
 			}
 
 		};

@@ -12,12 +12,9 @@ namespace doyou {
 		{
 		private:
 			INetClient _csGate;
-			DBUser _dbuser;
-			UserManager _userManager;
 		public:
 			void Init()
 			{
-				_dbuser.init();
 				auto csGate = Config::Instance().getStr("csGateUrl", "ws://127.0.0.1:4567");
 				_csGate.connect("csGate", csGate);
 
@@ -32,7 +29,6 @@ namespace doyou {
 			void Run()
 			{
 				_csGate.run(1);
-				_dbuser.run();
 			}
 
 			void Close()
@@ -58,17 +54,28 @@ namespace doyou {
 				json.Add("name", "GroupServer001");
 				json.Add("sskey", "ssmm00@123456");
 				json.AddEmptySubArray("apis");
-				json["apis"].Add("cs_msg_login");
-				json["apis"].Add("cs_msg_register");
-				json["apis"].Add("cs_msg_change_pw");
+				json["apis"].Add("cs_msg_group_create");
+				json["apis"].Add("cs_msg_group_join");
+				json["apis"].Add("cs_msg_group_exit");
+				json["apis"].Add("cs_msg_group_say");
 
-				client->request("ss_reg_api", json, [](INetClient* client, neb::CJsonObject& msg) {
+				client->request("ss_reg_server", json, [](INetClient* client, neb::CJsonObject& msg) {
 					CELLLog_Info(msg("data").c_str());
 				});
 			}
 
 			void cs_msg_group_create(INetClient* client, neb::CJsonObject& msg)
 			{
+				//1鉴定权限
+				//请求者是否具备创建group的权限
+				//已登录的client或者server
+
+
+				//2.group的id
+				//可以请求者提供，也可以是服务来分配
+
+				//3.group的key
+
 
 			}
 
