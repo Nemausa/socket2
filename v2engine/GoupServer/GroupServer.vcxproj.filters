@@ -80,5 +80,8 @@
     <ClInclude Include="..\..\network\depends\include\GroupServer.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\network\depends\include\GroupManager.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

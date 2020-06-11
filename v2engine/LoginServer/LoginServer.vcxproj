@@ -166,6 +166,7 @@
     <ClInclude Include="..\..\network\depends\include\DBUser.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetClient.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetTransfer.hpp" />
+    <ClInclude Include="..\..\network\depends\include\Log.hpp" />
     <ClInclude Include="..\..\network\depends\include\LoginServer.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetStateCode.hpp" />
     <ClInclude Include="..\..\network\depends\include\UserManager.hpp" />

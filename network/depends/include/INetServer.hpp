@@ -140,6 +140,16 @@ namespace doyou {
 					int clientId = (int)pWSClient->sockfd();
 					json.Add("clientId", clientId);
 
+					if (pWSClient->is_login())
+					{
+						json.Add("userId", pWSClient->userId());
+					}
+
+					if (pWSClient->is_ss_link())
+					{
+						json.Add("is_ss_link", true, true);
+					}
+
 					//网关本地支持的命令
 					if (on_net_msg_do(pServer, pWSClient, cmd, json))
 						return;

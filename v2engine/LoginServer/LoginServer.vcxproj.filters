@@ -77,5 +77,8 @@
     <ClInclude Include="..\..\network\depends\include\INetStateCode.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\network\depends\include\Log.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

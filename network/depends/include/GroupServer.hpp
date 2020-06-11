@@ -3,8 +3,8 @@
 
 #include<regex>
 #include"INetClient.hpp"
-#include "DBUser.hpp"
-#include "UserManager.hpp"
+#include "GroupManager.hpp"
+#include <sstream>
 
 namespace doyou {
 	namespace io {
@@ -12,6 +12,7 @@ namespace doyou {
 		{
 		private:
 			INetClient _csGate;
+			GroupManager _group_manager;
 		public:
 			void Init()
 			{
@@ -69,18 +70,108 @@ namespace doyou {
 				//1鉴定权限
 				//请求者是否具备创建group的权限
 				//已登录的client或者server
+				int clientId = 0;
+				if (!msg.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found key<clientId>.");
+					return;
+				}
 
+				bool is_ss_link = false;
+				msg.Get("is_ss_link", is_ss_link);
+
+				int64_t userId = 0;
+				msg.Get("userId", userId);
+
+				if (userId == 0 && !is_ss_link)
+				{
+					client->resp_error(msg, "not login");
+					return;
+				}
 
 				//2.group的id
 				//可以请求者提供，也可以是服务来分配
+				int group_id = 0;
+				if (!msg["data"].Get("group_id", group_id))
+				{
+					client->resp_error(msg,"not found key<group_id>");
+					return;
+				}
+
 
 				//3.group的key
+				//可以请求者提供，也可以是服务来分配
+				int group_key = 0;
+				if (!msg["data"].Get("group_key", group_key))
+				{
+					client->resp_error(msg, "not found key<group_key>");
+					return;
+				}
 
+				if (!_group_manager.create(group_id, group_key, clientId))
+				{
+					client->resp_error(msg, "create group failed");
+					return;
+				}
+
+				CELLLog_Info("group.create:id<%d>key<%d>", group_id, group_key);
+
+				neb::CJsonObject json;
+				json.Add("group_id", group_id);
+				json.Add("group_key", group_key);
+				client->response(msg, json);
 
 			}
 
 			void cs_msg_group_join(INetClient* client, neb::CJsonObject& msg)
 			{
+				int clientId = 0;
+				if (!msg.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found key<clientId>.");
+					return;
+				}
+
+				bool is_ss_link = false;
+				msg.Get("is_ss_link", is_ss_link);
+
+				int64_t userId = 0;
+				msg.Get("userId", userId);
+
+				if (userId == 0 && !is_ss_link)
+				{
+					client->resp_error(msg, "not login");
+					return;
+				}
+
+
+				int group_id = 0;
+				if (!msg["data"].Get("group_id", group_id))
+				{
+					client->resp_error(msg, "not found key<group_id>");
+					return;
+				}
+
+
+				int group_key = 0;
+				if (!msg["data"].Get("group_key", group_key))
+				{
+					client->resp_error(msg, "not found key<group_key>");
+					return;
+				}
+
+				if (!_group_manager.join(group_id, group_key, clientId))
+				{
+					client->resp_error(msg, "join failed");
+					return;
+				}
+
+				CELLLog_Info("group.join:id<%d>key<%d>", group_id, group_key);
+
+				neb::CJsonObject json;
+				json.Add("group_id", group_id);
+				json.Add("group_key", group_key);
+				client->response(msg, json);
 
 			}
 

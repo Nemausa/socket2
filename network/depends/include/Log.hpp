@@ -4,6 +4,7 @@
 #include"CELL.hpp"
 #include"Task.hpp"
 #include<ctime>
+#include <iostream>
 
 namespace doyou {
 	namespace io {
@@ -23,7 +24,15 @@ namespace doyou {
 #endif
 #endif // _DEBUG
 
-#define CELLLog_Info(...) doyou::io::Log::Info(__VA_ARGS__)
+#ifdef _MSC_VER
+#   define PLOG_GET_FUNC()      __FUNCTION__
+#elif defined(__BORLANDC__)
+#   define PLOG_GET_FUNC()      __FUNC__
+#else
+#   define PLOG_GET_FUNC()      __PRETTY_FUNCTION__
+#endif
+
+#define CELLLog_Info(...) ;/*Log::FileInfo(__LINE__, PLOG_GET_FUNC(),__FILE__);*/Log::Info(__VA_ARGS__)
 #define CELLLog_Warring(...) Log::Warring(__VA_ARGS__)
 #define CELLLog_Error(...) Log::Error(__VA_ARGS__)
 #define CELLLog_Error(...) Log::Error(__VA_ARGS__)
@@ -50,6 +59,11 @@ namespace doyou {
 			{
 				static  Log sLog;
 				return sLog;
+			}
+
+			static void FileInfo(int line, char* func, char* file)
+			{
+				Info("%d-%s-%s", line, func, file);
 			}
 
 			void setLogPath(const char* logName, const char* mode, bool hasDate)
@@ -188,7 +202,7 @@ namespace doyou {
 					//fprintf(pLog->_logFile, "%s", ctime(&tNow));
 					std::tm* now = std::localtime(&tNow);
 					if (type)
-						fprintf(pLog->_logFile, "%s", type);
+						fprintf(pLog->_logFile, "09%s", type);
 					fprintf(pLog->_logFile, "[%d-%d-%d %d:%d:%d]", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 					fprintf(pLog->_logFile, pformat, args...);
 					if (br)

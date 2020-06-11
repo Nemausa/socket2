@@ -28,6 +28,19 @@
             token<input type="text" id="token" />
             <button onclick="onclick_btn_login_by_token()">token登录</button>
             <br>
+            <br>
+            -------------会话组----------<br>
+            group_id<input type="text" id="group_id" /> <br>
+            group_key<input type="text" id="group_key" /> <br>
+            group_say<input type="text" id="group_say" /> <br>
+            <br>
+            <br>
+            <button onclick="onclick_btn_group_create()">创建</button>
+            <button onclick="onclick_btn_group_join()">加入</button>
+            <button onclick="onclick_btn_group_exit()">退出</button>
+            <button onclick="onclick_btn_group_say()">发送</button>
+            <br>
+            <br>
             <textarea id="msgbox" style="resize:none;" rows="20" cols="40" >
             </textarea>
     </div>
@@ -288,6 +301,41 @@
                         add_log_msg("登录成功"+msg.data.token);
                     else
                         add_log_msg("登录失败："+msg.data.token);
+                });
+        }
+
+
+       function onclick_btn_group_create()
+        {
+            var group_id = document.getElementById("group_id").value;
+            var group_key = document.getElementById("group_key").value;
+            user.request("cs_msg_group_create",
+                {
+                   group_id:Number(group_id),
+                   group_key:Number(group_key)
+                }
+                ,function(msg){
+                    if(0 == msg.state)
+                        add_log_msg("group成功"+msg.data.group_id);
+                    else
+                        add_log_msg("group失败"+msg.data);
+                });
+        }
+
+        function onclick_btn_group_join()
+        {
+            var group_id = document.getElementById("group_id").value;
+            var group_key = document.getElementById("group_key").value;
+            user.request("cs_msg_group_join",
+                {
+                   group_id:Number(group_id),
+                   group_key:Number(group_key)
+                }
+                ,function(msg){
+                    if(0 == msg.state)
+                        add_log_msg("group join 成功"+msg.data.group_id);
+                    else
+                        add_log_msg("group join 失败"+msg.data);
                 });
         }
     </script>
