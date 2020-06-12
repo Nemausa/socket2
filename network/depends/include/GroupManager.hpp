@@ -20,22 +20,33 @@ namespace doyou
 		class Group
 		{
 		public:
-			void add(int64_t client)
+			bool add(int64_t client)
 			{
 				auto itr = std::find(_member.begin(), _member.end(), client);
 				if (itr == _member.end())
 				{
 					_member.push_back(client);
+					return true;
 				}
+				return false;
 			}
 
-			void del(int64_t client)
+			bool del(int64_t client)
 			{
 				auto itr = std::find(_member.begin(), _member.end(), client);
 				if (itr != _member.end())
 				{
 					_member.erase(itr);
+					return true;
 				}
+
+				return false;
+			}
+
+			bool has(int64_t client)
+			{
+				auto itr = std::find(_member.begin(), _member.end(), client);
+				return itr != _member.end();
 			}
 
 			int key()
@@ -118,9 +129,10 @@ namespace doyou
 				if (itr == _map_member.end())
 					return false;
 
-				itr->second.del(client);
+				auto ret = itr->second.del(client);
 				if (itr->second.empty())
 					_map_member.erase(itr);
+				return ret;
 			}
 
 			Group* get(int group_id)
@@ -131,6 +143,15 @@ namespace doyou
 
 				return &itr->second;
 				
+			}
+
+			bool has(int group_id, int64_t client)
+			{
+				auto itr = _map_member.find(group_id);
+				if (itr == _map_member.end())
+					return false;
+
+				return itr->second.has(client);
 			}
 		};
 	}

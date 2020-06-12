@@ -226,7 +226,11 @@
         });
 
         user.reg_msg_call("sc_msg_group_join", function(msg){
-            add_log_msg("会话组<"+msg.data.group_id +"加入新成员" +msg.data.clientId);
+            add_log_msg("会话组<"+msg.data.group_id +">加入新成员" +msg.data.clientId);
+        });
+
+        user.reg_msg_call("sc_msg_group_exit", function(msg){
+            add_log_msg("会话组<"+msg.data.group_id +">退出 group " +msg.data.clientId);
         });
 
         function onclick_btn_connect() {
@@ -340,6 +344,23 @@
                         add_log_msg("group join 成功"+msg.data.group_id);
                     else
                         add_log_msg("group join 失败"+msg.data);
+                });
+        }
+
+        function onclick_btn_group_exit()
+        {
+            var group_id = document.getElementById("group_id").value;
+            var group_key = document.getElementById("group_key").value;
+            user.request("cs_msg_group_exit",
+                {
+                   group_id:Number(group_id),
+                   group_key:Number(group_key)
+                }
+                ,function(msg){
+                    if(0 == msg.state)
+                        add_log_msg("group exit 成功"+msg.data.group_id);
+                    else
+                        add_log_msg("group exit 失败"+msg.data);
                 });
         }
     </script>
