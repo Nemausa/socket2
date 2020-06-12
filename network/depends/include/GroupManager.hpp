@@ -17,48 +17,55 @@ namespace doyou
 {
 	namespace io
 	{
+		class Group
+		{
+		public:
+			void add(int64_t client)
+			{
+				auto itr = std::find(_member.begin(), _member.end(), client);
+				if (itr == _member.end())
+				{
+					_member.push_back(client);
+				}
+			}
+
+			void del(int64_t client)
+			{
+				auto itr = std::find(_member.begin(), _member.end(), client);
+				if (itr != _member.end())
+				{
+					_member.erase(itr);
+				}
+			}
+
+			int key()
+			{
+				return _key;
+			}
+
+			void key(int key)
+			{
+				_key = key;;
+			}
+
+			bool empty()
+			{
+				return _member.empty();
+			}
+
+			const std::vector<int64_t>& member()
+			{
+				return _member;
+			}
+
+		private:
+			std::vector<int64_t> _member;
+			int _key = 0;
+		};
+
 		class GroupManager
 		{
-			class Group
-			{
-			public:
-				void add(int64_t client)
-				{
-					auto itr = std::find(_Group.begin(), _Group.end(), client);
-					if (itr == _Group.end())
-					{
-						_Group.push_back(client);
-					}
-				}
-
-				void del(int64_t client)
-				{
-					auto itr = std::find(_Group.begin(), _Group.end(), client);
-					if (itr != _Group.end())
-					{
-						_Group.erase(itr);
-					}
-				}
-
-				int key()
-				{
-					return _key;
-				}
-
-				void key(int key)
-				{
-					 _key = key;;
-				}
-				
-				bool empty()
-				{
-					return _Group.empty();
-				}
-
-			private:
-				std::vector<int64_t> _Group;
-				int _key = 0;
-			};
+			
 		private:
 			std::map<int, Group> _map_member;
 			int _index_id = 10000;
@@ -101,6 +108,7 @@ namespace doyou
 				if (itr->second.key() != group_key)
 					return false;
 
+				itr->second.add(client);
 				return true;
 			}
 
@@ -113,6 +121,16 @@ namespace doyou
 				itr->second.del(client);
 				if (itr->second.empty())
 					_map_member.erase(itr);
+			}
+
+			Group* get(int group_id)
+			{
+				auto itr = _map_member.find(group_id);
+				if (itr == _map_member.end())
+					return nullptr;
+
+				return &itr->second;
+				
 			}
 		};
 	}

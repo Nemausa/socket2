@@ -168,10 +168,29 @@ namespace doyou {
 
 				CELLLog_Info("group.join:id<%d>key<%d>", group_id, group_key);
 
+
+				
 				neb::CJsonObject json;
 				json.Add("group_id", group_id);
 				json.Add("group_key", group_key);
 				client->response(msg, json);
+
+				auto group = _group_manager.get(group_id); 
+				if (!group)
+					return;
+
+
+				//通知会话组的已有成员
+				//有新成员加入
+				neb::CJsonObject ob;
+				ob.Add("group_id", group_id);
+				ob.Add("clientId", clientId);
+				auto& member = group->member();
+				for (size_t i = 0; i < member.size(); i++)
+				{
+					client->push(member[i], "sc_msg_group_join", ob);
+				}
+
 
 			}
 

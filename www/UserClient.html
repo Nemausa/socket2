@@ -225,6 +225,10 @@
             add_log_msg("登出账号： "+msg.data);
         });
 
+        user.reg_msg_call("sc_msg_group_join", function(msg){
+            add_log_msg("会话组<"+msg.data.group_id +"加入新成员" +msg.data.clientId);
+        });
+
         function onclick_btn_connect() {
            // user.connect('ws://127.0.0.1:4567');
            user.connect('ws://127.0.0.1:4567', function(self){
