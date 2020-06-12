@@ -265,7 +265,72 @@ namespace doyou {
 
 			void cs_msg_group_say(INetClient* client, neb::CJsonObject& msg)
 			{
+				int clientId = 0;
+				if (!msg.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found key<clientId>.");
+					return;
+				}
 
+				bool is_ss_link = false;
+				msg.Get("is_ss_link", is_ss_link);
+
+				int64_t userId = 0;
+				msg.Get("userId", userId);
+
+				if (userId == 0 && !is_ss_link)
+				{
+					client->resp_error(msg, "not login");
+					return;
+				}
+
+
+				int group_id = 0;
+				if (!msg["data"].Get("group_id", group_id))
+				{
+					client->resp_error(msg, "not found key<group_id>");
+					return;
+				}
+
+				std::string say;
+				if (!msg["data"].Get("say", say))
+				{
+					client->resp_error(msg, "not found key<say>");
+					return;
+				}
+
+				auto group = _group_manager.get(group_id);
+				if (!group)
+				{
+					client->resp_error(msg, "not find this group");
+					return;
+				}
+
+				if (!group->has(clientId))
+				{
+					client->resp_error(msg, "say failed");
+					return;
+				}
+
+				CELLLog_Debug("group.say:id<%d>", group_id);
+
+				{
+					neb::CJsonObject json;
+					json.Add("group_id", group_id);
+					client->response(msg, json);
+				}
+
+				{
+					neb::CJsonObject  json;
+					json.Add("group_id", group_id);
+					json.Add("clientId", clientId);
+					json.Add("say", say);
+					auto &member = group->member();
+					for (size_t i = 0; i < member.size(); i++)
+					{
+						client->push(member[i], "sc_msg_group_say", json);
+					}
+				}
 			}
 			
 

@@ -316,6 +316,18 @@ namespace doyou {
 
 				return transfer(ret);
 			}
+
+			template<class T>
+			bool broadcast(const std::string& cmd, const T& data)
+			{
+				neb::CJsonObject ret;
+				ret.Add("cmd", cmd);
+				ret.Add("type", msg_type_broadcast);
+				ret.Add("time", (int64)Time::system_clock_now());
+				ret.Add("data", data);
+
+				return transfer(ret);
+			}
 		};
 	}
 }

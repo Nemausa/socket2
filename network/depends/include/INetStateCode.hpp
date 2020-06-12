@@ -18,6 +18,7 @@ namespace doyou
 #define msg_type_req  1
 #define msg_type_resp 2
 #define msg_type_push 3
+#define msg_type_broadcast 4
 
 #define state_code_ok 0
 #define state_code_error 1

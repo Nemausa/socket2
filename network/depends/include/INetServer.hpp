@@ -14,6 +14,7 @@ namespace doyou {
 			std::map<std::string, NetEventCall> _map_msg_call;
 		public:
 			std::function<void(Server*, INetClientS*, std::string&, neb::CJsonObject&)> on_other_msg = nullptr;
+			std::function<void(Server*, INetClientS*, std::string&, neb::CJsonObject&)> on_broadcast_msg = nullptr;
 			std::function<void(INetClientS*)> on_client_leave = nullptr;
 		private:
 			virtual Client* makeClientObj(SOCKET cSock)
@@ -164,6 +165,37 @@ namespace doyou {
 					return;
 				}
 
+				//只有服务可以广播
+				if (msg_type_broadcast == msg_type)
+				{
+					if (!pWSClient->is_ss_link())
+					{
+						CELLLog_Error("pWSClient->is_ss_link=false, msg_type_broadcast.");
+						return;
+					}
+
+					std::string cmd;
+					if (!json.Get("cmd", cmd))
+					{
+						CELLLog_Error("not found key<%s>.", "cmd");
+						return;
+					}
+
+					int clientId = (int)pWSClient->sockfd();
+					json.Add("clientId", clientId);
+
+					if (pWSClient->is_login())
+					{
+						json.Add("userId", pWSClient->userId());
+					}
+
+					
+					on_broadcast_msg(pServer, pWSClient, cmd, json);
+					
+
+
+					return;
+				}
 			}
 
 			void Init()

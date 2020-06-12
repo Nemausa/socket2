@@ -16,6 +16,7 @@ namespace doyou {
 			{
 				_netserver.Init();
 				_netserver.on_other_msg = std::bind(&GateServer::on_other_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+				_netserver.on_broadcast_msg = std::bind(&GateServer::on_broadcast_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				_netserver.on_client_leave = std::bind(&GateServer::on_client_leave, this, std::placeholders::_1);
 				_netserver.reg_msg_call("cs_msg_heart", std::bind(&GateServer::cs_msg_heart, this,std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 				_netserver.reg_msg_call("ss_reg_server", std::bind(&GateServer::ss_reg_server, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -193,6 +194,27 @@ namespace doyou {
 				if(client->is_ss_link())
 					_transfer.del(client);
 			}
+
+			template<class T>
+			void broadcast(const std::string& cmd, const T& data)
+			{
+				neb::CJsonObject ret;
+				ret.Add("cmd", cmd);
+				ret.Add("type", msg_type_broadcast);
+				ret.Add("time", Time::system_clock_now());
+				ret.Add("data", data);
+				
+				auto str = msg.ToString();
+				_transfer.on_broadcast_do(cmd, str);
+			}
+
+			void on_broadcast_msg(Server* server, INetClientS* client, std::string& cmd, neb::CJsonObject& msg)
+			{
+				auto str = msg.ToString();
+				_transfer.on_broadcast_do(cmd, str);
+			}
+
+
 		};
 	}
 }

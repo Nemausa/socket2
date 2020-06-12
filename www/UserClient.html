@@ -233,6 +233,10 @@
             add_log_msg("会话组<"+msg.data.group_id +">退出 group " +msg.data.clientId);
         });
 
+        user.reg_msg_call("sc_msg_group_say", function(msg){
+            add_log_msg("会话组<"+msg.data.group_id +">成员<"+msg.data.clientId + ">说"  +msg.data.say);
+        });
+
         function onclick_btn_connect() {
            // user.connect('ws://127.0.0.1:4567');
            user.connect('ws://127.0.0.1:4567', function(self){
@@ -361,6 +365,25 @@
                         add_log_msg("group exit 成功"+msg.data.group_id);
                     else
                         add_log_msg("group exit 失败"+msg.data);
+                });
+        }
+
+        function onclick_btn_group_say()
+        {
+            var group_id = document.getElementById("group_id").value;
+            var group_key = document.getElementById("group_key").value;
+            var say = document.getElementById("group_say").value;
+            user.request("cs_msg_group_say",
+                {
+                   group_id:Number(group_id),
+                   group_key:Number(group_key),
+                   say:say
+                }
+                ,function(msg){
+                    if(0 == msg.state)
+                        add_log_msg("发言 成功"+msg.data.group_id);
+                    else
+                        add_log_msg("发言 失败"+msg.data);
                 });
         }
     </script>
