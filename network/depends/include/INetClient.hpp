@@ -103,7 +103,7 @@ namespace doyou {
 					
 
 					//请求或推送消息
-					if (msg_type_req == msg_type || msg_type_push == msg_type)
+					if (msg_type_req == msg_type || msg_type_push == msg_type || msg_type_broadcast == msg_type)
 					{
 						std::string cmd;
 						if (!json.Get("cmd", cmd))

@@ -25,6 +25,7 @@ namespace doyou {
 				_csGate.reg_msg_call("cs_msg_group_join", std::bind(&GroupServer::cs_msg_group_join, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_group_exit", std::bind(&GroupServer::cs_msg_group_exit, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_group_say", std::bind(&GroupServer::cs_msg_group_say, this, std::placeholders::_1, std::placeholders::_2));
+				_csGate.reg_msg_call("ss_msg_client_exit", std::bind(&GroupServer::ss_msg_client_exit, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			void Run()
@@ -59,10 +60,50 @@ namespace doyou {
 				json["apis"].Add("cs_msg_group_join");
 				json["apis"].Add("cs_msg_group_exit");
 				json["apis"].Add("cs_msg_group_say");
+				json["apis"].Add("ss_msg_client_exit");
 
 				client->request("ss_reg_server", json, [](INetClient* client, neb::CJsonObject& msg) {
 					CELLLog_Info(msg("data").c_str());
 				});
+			}
+
+			void ss_msg_client_exit(INetClient* client, neb::CJsonObject& msg)
+			{
+				int clienId = 0;
+				if (!msg["data"].Get("clientId", clienId))
+				{
+					client->resp_error(msg, "not found key<clientId>");
+					return;
+
+				}
+
+				std::vector<int> group_list;
+				if (!_group_manager.find(clienId, group_list))
+				{
+					return;
+				}
+
+				for (size_t i = 0; i < group_list.size(); i++)
+				{
+					int group_id = group_list[i];
+					auto group = _group_manager.get(group_id);
+					if (!_group_manager.del(group_id, clienId))
+					{
+						continue;
+					}
+
+					{
+						neb::CJsonObject json;
+						json.Add("group_id", group_id);
+						json.Add("clientId", clienId);
+						auto &member = group->member();
+						for (size_t n = 0; n < member.size(); n++)
+						{
+							client->push(member[n], "sc_msg_group_exit", json);
+						}
+					}
+				}
+
 			}
 
 			void cs_msg_group_create(INetClient* client, neb::CJsonObject& msg)
@@ -333,7 +374,7 @@ namespace doyou {
 				}
 			}
 			
-
+			
 		};
 	}
 }

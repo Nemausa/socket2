@@ -59,6 +59,16 @@ namespace doyou
 				_key = key;;
 			}
 
+			int id()
+			{
+				return _id;
+			}
+
+			void id(int id)
+			{
+				_id = id;;
+			}
+
 			bool empty()
 			{
 				return _member.empty();
@@ -72,6 +82,7 @@ namespace doyou
 		private:
 			std::vector<int64_t> _member;
 			int _key = 0;
+			int _id = 0;
 		};
 
 		class GroupManager
@@ -102,6 +113,7 @@ namespace doyou
 					Group a;
 					a.add(client);
 					a.key(group_key);
+					a.id(group_id);
 					_map_member[group_id] = a;
 				}
 
@@ -121,6 +133,17 @@ namespace doyou
 
 				itr->second.add(client);
 				return true;
+			}
+
+			bool find(int64_t client, std::vector<int>& group_list)
+			{
+				for (auto& itr : _map_member)
+				{
+					itr.second.has(client);
+					group_list.push_back(itr.second.id());
+				}
+
+				return !group_list.empty();
 			}
 
 			bool del(int group_id, int64_t client)

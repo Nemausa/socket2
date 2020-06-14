@@ -189,11 +189,6 @@ namespace doyou {
 				
 			}
 
-			void on_client_leave(INetClientS* client)
-			{
-				if(client->is_ss_link())
-					_transfer.del(client);
-			}
 
 			template<class T>
 			void broadcast(const std::string& cmd, const T& data)
@@ -204,7 +199,7 @@ namespace doyou {
 				ret.Add("time", Time::system_clock_now());
 				ret.Add("data", data);
 				
-				auto str = msg.ToString();
+				auto str = ret.ToString();
 				_transfer.on_broadcast_do(cmd, str);
 			}
 
@@ -212,7 +207,34 @@ namespace doyou {
 			{
 				auto str = msg.ToString();
 				_transfer.on_broadcast_do(cmd, str);
+
 			}
+
+			void on_client_leave(INetClientS* client)
+			{
+				if (client->is_ss_link())
+					_transfer.del(client);
+
+				if (client->is_login())
+				{
+					neb::CJsonObject msg;
+					msg.Add("userId", client->userId());
+					msg.Add("clientId", client->sockfd());
+
+					broadcast("ss_msg_user_exit", msg);
+				}
+				
+				{
+					neb::CJsonObject msg;
+					msg.Add("userId", client->userId());
+					msg.Add("clientId", client->sockfd());
+
+					broadcast("ss_msg_client_exit", msg);
+				}
+
+				
+			}
+
 
 
 		};
