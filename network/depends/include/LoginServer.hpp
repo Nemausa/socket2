@@ -28,6 +28,9 @@ namespace doyou {
 				_csGate.reg_msg_call("cs_msg_change_pw", std::bind(&LoginServer::cs_msg_change_pw, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("ss_msg_get_user_by_token", std::bind(&LoginServer::ss_msg_get_user_by_token, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_login_by_token", std::bind(&LoginServer::cs_msg_login_by_token, this, std::placeholders::_1, std::placeholders::_2));
+
+				_csGate.reg_msg_call("ss_msg_client_exit", std::bind(&LoginServer::ss_msg_client_exit, this, std::placeholders::_1, std::placeholders::_2));
+				_csGate.reg_msg_call("ss_msg_user_exit", std::bind(&LoginServer::ss_msg_user_exit, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			void Run()
@@ -64,6 +67,9 @@ namespace doyou {
 				json["apis"].Add("cs_msg_change_pw");
 				json["apis"].Add("ss_msg_get_user_by_token");
 				json["apis"].Add("cs_msg_login_by_token");
+
+				json["apis"].Add("ss_msg_client_exit");
+				json["apis"].Add("ss_msg_user_exit");
 
 				client->request("ss_reg_server", json, [](INetClient* client, neb::CJsonObject& msg) {
 					CELLLog_Info(msg("data").c_str());
@@ -499,6 +505,17 @@ namespace doyou {
 				json.Add("token", token);
 				//·µ»ØµÇÂ¼½á¹û
 				client->response(msg, json);
+			}
+
+			void ss_msg_client_exit(INetClient* client, neb::CJsonObject& msg)
+			{
+				
+
+			}
+
+			void ss_msg_user_exit(INetClient*client, neb::CJsonObject& msg)
+			{
+
 			}
 
 		};

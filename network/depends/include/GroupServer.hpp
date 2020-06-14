@@ -4,6 +4,7 @@
 #include<regex>
 #include"INetClient.hpp"
 #include "GroupManager.hpp"
+#include "UserGroup.hpp"
 #include <sstream>
 
 namespace doyou {
@@ -13,6 +14,7 @@ namespace doyou {
 		private:
 			INetClient _csGate;
 			GroupManager _group_manager;
+			UserGroup _user_group;
 		public:
 			void Init()
 			{
@@ -26,6 +28,7 @@ namespace doyou {
 				_csGate.reg_msg_call("cs_msg_group_exit", std::bind(&GroupServer::cs_msg_group_exit, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("cs_msg_group_say", std::bind(&GroupServer::cs_msg_group_say, this, std::placeholders::_1, std::placeholders::_2));
 				_csGate.reg_msg_call("ss_msg_client_exit", std::bind(&GroupServer::ss_msg_client_exit, this, std::placeholders::_1, std::placeholders::_2));
+				_csGate.reg_msg_call("ss_msg_user_exit", std::bind(&GroupServer::ss_msg_user_exit, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			void Run()
@@ -61,6 +64,7 @@ namespace doyou {
 				json["apis"].Add("cs_msg_group_exit");
 				json["apis"].Add("cs_msg_group_say");
 				json["apis"].Add("ss_msg_client_exit");
+				json["apis"].Add("ss_msg_user_exit");
 
 				client->request("ss_reg_server", json, [](INetClient* client, neb::CJsonObject& msg) {
 					CELLLog_Info(msg("data").c_str());
@@ -77,11 +81,16 @@ namespace doyou {
 
 				}
 
-				std::vector<int> group_list;
-				if (!_group_manager.find(clienId, group_list))
+				int64_t userId;
+				if (!msg["data"].Get("userId", userId))
 				{
+					client->resp_error(msg, "not found key<userId>");
 					return;
+
 				}
+
+				auto ug = _user_group.get(userId);
+				auto& group_list = ug->member();
 
 				for (size_t i = 0; i < group_list.size(); i++)
 				{
@@ -103,6 +112,11 @@ namespace doyou {
 						}
 					}
 				}
+
+			}
+
+			void ss_msg_user_exit(INetClient*client, neb::CJsonObject& msg)
+			{
 
 			}
 
@@ -149,11 +163,17 @@ namespace doyou {
 					return;
 				}
 
+				// 先通过id查询会话组
+				auto group = _group_manager.get(group_id);
+
 				if (!_group_manager.create(group_id, group_key, clientId))
 				{
 					client->resp_error(msg, "create group failed");
 					return;
 				}
+
+				//
+				_user_group.add(userId, group_id);
 
 				CELLLog_Info("group.create:id<%d>key<%d>", group_id, group_key);
 
@@ -161,6 +181,19 @@ namespace doyou {
 				json.Add("group_id", group_id);
 				json.Add("group_key", group_key);
 				client->response(msg, json);
+
+				if (group)
+				{
+					neb::CJsonObject ob;
+					ob.Add("group_id", group_id);
+					ob.Add("clientId", clientId);
+					auto& member = group->member();
+					for (size_t i = 0; i < member.size(); i++)
+					{
+						client->push(member[i], "sc_msg_group_join", ob);
+					}
+
+				}
 
 			}
 
@@ -207,10 +240,11 @@ namespace doyou {
 					return;
 				}
 
+
+				_user_group.add(userId, group_id);
 				CELLLog_Info("group.join:id<%d>key<%d>", group_id, group_key);
 
 
-				
 				neb::CJsonObject json;
 				json.Add("group_id", group_id);
 				json.Add("group_key", group_key);
@@ -284,7 +318,7 @@ namespace doyou {
 				}
 
 				CELLLog_Info("group.exit:id<%d>", group_id);
-
+				_user_group.del(userId, group_id);
 				{
 					neb::CJsonObject json;
 					json.Add("group_id", group_id);
