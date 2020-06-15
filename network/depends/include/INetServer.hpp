@@ -244,10 +244,9 @@ namespace doyou {
 				}
 			}
 
-			void Init()
+			void Init(const char* strIP, uint16_t nPort)
 			{
-				const char* strIP = Config::Instance().getStr("strIP", "any");
-				uint16_t nPort = Config::Instance().getInt("nPort", 4567);
+				
 				int nThread = 1;//Config::Instance().getInt("nThread", 1);
 
 				if (strcmp(strIP, "any") == 0)

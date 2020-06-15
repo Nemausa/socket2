@@ -14,15 +14,17 @@ namespace doyou {
 		public:
 			void Init()
 			{
-				_netserver.Init();
+				const char* strIP = Config::Instance().getStr("strIP", "any");
+				uint16_t nPort = Config::Instance().getInt("nPort", 4567);
+				_netserver.Init(strIP, nPort);
 				_netserver.on_other_msg = std::bind(&GateServer::on_other_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				_netserver.on_broadcast_msg = std::bind(&GateServer::on_broadcast_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				_netserver.on_client_leave = std::bind(&GateServer::on_client_leave, this, std::placeholders::_1);
 				_netserver.reg_msg_call("cs_msg_heart", std::bind(&GateServer::cs_msg_heart, this,std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 				_netserver.reg_msg_call("ss_reg_server", std::bind(&GateServer::ss_reg_server, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-				_netserver.reg_msg_call("cs_reg_client", std::bind(&GateServer::cs_reg_client, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-				_netserver.reg_msg_call("ss_msg_user_logout", std::bind(&GateServer::ss_msg_user_logout, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-				_netserver.reg_msg_call("ss_msg_user_login", std::bind(&GateServer::ss_msg_user_login, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+				//_netserver.reg_msg_call("cs_reg_client", std::bind(&GateServer::cs_reg_client, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+				//_netserver.reg_msg_call("ss_msg_user_logout", std::bind(&GateServer::ss_msg_user_logout, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+				//_netserver.reg_msg_call("ss_msg_user_login", std::bind(&GateServer::ss_msg_user_login, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 				
 			}
 

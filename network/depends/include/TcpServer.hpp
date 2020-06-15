@@ -228,6 +228,21 @@ namespace doyou {
 				return new Client(cSock, _nSendBuffSize, _nRecvBuffSize);
 			}
 
+			Client* find_client(int id)
+			{
+				for (auto pServer : _cellServers)
+				{
+					Client* c = pServer->find_client(id);
+					if (c)
+					{
+						return c;
+					}
+				}
+
+				return nullptr;
+				
+			}
+
 			void addClientToCELLServer(Client* pClient)
 			{
 				//查找客户数量最少的CELLServer消息处理对象
