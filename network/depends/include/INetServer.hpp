@@ -129,6 +129,52 @@ namespace doyou {
 					return;
 				}
 
+				// 服务端批量推送
+				if (msg_type_push_pro == msg_type)
+				{
+					if (!pWSClient->is_ss_link())
+					{
+						CELLLog_Error("pWSClient->is_ss_link=false, is_resp=true.");
+						return;
+					}
+
+					//获得目标用户id
+					auto clients = json["clients"];
+					if (!clients.IsArray())
+					{
+						CELLLog_Error("not found clients");
+						return;
+					}
+
+					//移除原始消息目标用户数组
+					json.Delete("clients");
+					//替换消息类型
+					json.Replace("type", msg_type_push);
+					//要推送的消息字符串
+					std::string retStr = json.ToString();
+					int size = clients.GetArraySize();
+					int clientId = 0;
+					for (size_t i = 0; i < size; i++)
+					{
+						if(!clients.Get(i, clientId))
+							continue;
+
+						auto client = dynamic_cast<INetClientS*>(pServer->find_client(clientId));
+						if (!client)
+						{
+							CELLLog_Error("INetServer::OnNetMsgWS::pServer->find_client(%d) miss.", clientId);
+							continue;
+						}
+						if (SOCKET_ERROR == client->writeText(retStr.c_str(), retStr.length()))
+						{
+							CELLLog_Error("INetServer::OnNetMsgWS::sslink(%s)->clientId(%d) writeText SOCKET_ERROR.", pWSClient->link_name().c_str(), clientId);
+						}
+					}
+					
+
+					return;
+				}
+
 				if (msg_type_req == msg_type)
 				{
 					std::string cmd;

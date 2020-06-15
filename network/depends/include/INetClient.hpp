@@ -304,7 +304,7 @@ namespace doyou {
 			}
 
 			template<class T>
-			bool  push(int clientId, const std::string& cmd,const T& data, int state = state_code_ok)
+			bool push(int clientId, const std::string& cmd,const T& data, int state = state_code_ok)
 			{
 				neb::CJsonObject ret;
 				ret.Add("state", state);
@@ -313,6 +313,26 @@ namespace doyou {
 				ret.Add("type", msg_type_push);
 				ret.Add("time", (int64)Time::system_clock_now());
 				ret.Add("data", data);
+
+				return transfer(ret);
+			}
+
+			template<class T>
+			bool push(const std::vector<int64_t>& client, const std::string& cmd, const T& data, int state = state_code_ok)
+			{
+				neb::CJsonObject ret;
+				ret.Add("state", state);
+				ret.Add("cmd", cmd);
+				ret.Add("type", msg_type_push_pro);
+				ret.Add("time", (int64)Time::system_clock_now());
+				ret.Add("data", data);
+				ret.AddEmptySubArray("clients");
+
+				auto length = client.size();
+				for (size_t i = 0; i < length; i++)
+				{
+					ret["clients"].Add(client[i]);
+				}
 
 				return transfer(ret);
 			}

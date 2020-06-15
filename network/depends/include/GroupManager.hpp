@@ -112,8 +112,8 @@ namespace doyou
 				{
 					Group a;
 					a.add(client);
-					a.key(group_key);
 					a.id(group_id);
+					a.key(group_key);
 					_map_member[group_id] = a;
 				}
 
@@ -135,11 +135,11 @@ namespace doyou
 				return true;
 			}
 
-			bool find(int64_t client, std::vector<int>& group_list)
+			bool del(int64_t client, std::vector<int>& group_list)
 			{
 				for (auto& itr : _map_member)
 				{
-					itr.second.has(client);
+					itr.second.del(client);
 					group_list.push_back(itr.second.id());
 				}
 

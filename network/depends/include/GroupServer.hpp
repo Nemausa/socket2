@@ -105,11 +105,8 @@ namespace doyou {
 						neb::CJsonObject json;
 						json.Add("group_id", group_id);
 						json.Add("clientId", clienId);
-						auto &member = group->member();
-						for (size_t n = 0; n < member.size(); n++)
-						{
-							client->push(member[n], "sc_msg_group_exit", json);
-						}
+						client->push(group->member(), "sc_msg_group_exit", json);
+						
 					}
 				}
 
@@ -187,12 +184,7 @@ namespace doyou {
 					neb::CJsonObject ob;
 					ob.Add("group_id", group_id);
 					ob.Add("clientId", clientId);
-					auto& member = group->member();
-					for (size_t i = 0; i < member.size(); i++)
-					{
-						client->push(member[i], "sc_msg_group_join", ob);
-					}
-
+					client->push(group->member(), "sc_msg_group_join", ob);
 				}
 
 			}
@@ -260,13 +252,7 @@ namespace doyou {
 				neb::CJsonObject ob;
 				ob.Add("group_id", group_id);
 				ob.Add("clientId", clientId);
-				auto& member = group->member();
-				for (size_t i = 0; i < member.size(); i++)
-				{
-					client->push(member[i], "sc_msg_group_join", ob);
-				}
-
-
+				client->push(group->member(), "sc_msg_group_join", ob);
 			}
 
 			void cs_msg_group_exit(INetClient* client, neb::CJsonObject& msg)
@@ -329,11 +315,8 @@ namespace doyou {
 					neb::CJsonObject  json;
 					json.Add("group_id", group_id);
 					json.Add("clientId", clientId);
-					auto &member = group->member();
-					for (size_t i = 0; i < member.size(); i++)
-					{
-						client->push(member[i], "sc_msg_group_exit", json);
-					}
+					client->push(group->member(), "sc_msg_group_exit", json);
+					
 				}
 
 			}
@@ -400,11 +383,8 @@ namespace doyou {
 					json.Add("group_id", group_id);
 					json.Add("clientId", clientId);
 					json.Add("say", say);
-					auto &member = group->member();
-					for (size_t i = 0; i < member.size(); i++)
-					{
-						client->push(member[i], "sc_msg_group_say", json);
-					}
+					client->push(group->member(), "sc_msg_group_say", json);
+					
 				}
 			}
 			
