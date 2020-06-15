@@ -23,15 +23,15 @@ namespace doyou {
 				_ss_gate.reg_msg_call("ss_msg_user_login", std::bind(&LinkServer::ss_msg_user_login, this, std::placeholders::_1, std::placeholders::_2));
 
 				const char* strIP = Config::Instance().getStr("strIP", "any");
-				uint16_t nPort = Config::Instance().getInt("nPort", 4567);
+				uint16_t nPort = Config::Instance().getInt("nPort", 5000);
 				_netserver.Init(strIP, nPort);
 				_netserver.on_other_msg = std::bind(&LinkServer::on_other_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				_netserver.on_client_leave = std::bind(&LinkServer::on_client_leave, this, std::placeholders::_1);
+				_netserver.on_client_run = std::bind(&LinkServer::on_client_run, this, std::placeholders::_1);
 
 				_netserver.reg_msg_call("cs_msg_heart", std::bind(&LinkServer::cs_msg_heart, this,std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 				_netserver.reg_msg_call("cs_reg_client", std::bind(&LinkServer::cs_reg_client, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
-				
+		
 				
 			}
 
@@ -186,7 +186,10 @@ namespace doyou {
 				
 			}
 
-
+			void on_client_run(Server* pServer)
+			{
+				_ss_gate.run(0);
+			}
 
 		};
 	}

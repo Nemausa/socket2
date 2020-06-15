@@ -16,6 +16,7 @@ namespace doyou {
 			std::function<void(Server*, INetClientS*, std::string&, neb::CJsonObject&)> on_other_msg = nullptr;
 			std::function<void(Server*, INetClientS*, std::string&, neb::CJsonObject&)> on_broadcast_msg = nullptr;
 			std::function<void(INetClientS*)> on_client_leave = nullptr;
+			std::function<void(Server*)> on_client_run = nullptr;
 		private:
 			virtual Client* makeClientObj(SOCKET cSock)
 			{
@@ -71,6 +72,12 @@ namespace doyou {
 				if (on_client_leave)
 					on_client_leave(pWSClient);
 			}
+
+			virtual void OnNetRun(Server* pServer)
+			{
+				if (on_client_run)
+					on_client_run(pServer);
+			}
 		public:
 			virtual void OnNetMsgWS(Server* pServer, INetClientS* pWSClient)
 			{
@@ -81,7 +88,7 @@ namespace doyou {
 					return;
 				}
 				auto dataStr = pWSClient->fetch_data();
-				//CELLLog_Info("websocket client say: %s", dataStr);
+				CELLLog_Info("websocket client say: %s", dataStr);
 
 				neb::CJsonObject json;
 				if (!json.Parse(dataStr))

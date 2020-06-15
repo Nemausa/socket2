@@ -67,6 +67,9 @@ namespace doyou {
 						_clients_change = true;
 					}
 
+					if (_pNetEvent)
+						_pNetEvent->OnNetRun(this);
+
 					//如果没有需要处理的客户端，就跳过
 					if (_clients.empty())
 					{

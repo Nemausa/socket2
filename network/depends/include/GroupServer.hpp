@@ -90,6 +90,9 @@ namespace doyou {
 				}
 
 				auto ug = _user_group.get(userId);
+				if (!ug)
+					return;
+
 				auto& group_list = ug->member();
 
 				for (size_t i = 0; i < group_list.size(); i++)

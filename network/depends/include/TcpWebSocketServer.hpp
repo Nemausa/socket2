@@ -21,6 +21,7 @@ namespace doyou {
 					return;
 
 				pWSClient->resetDTHeart();
+				
 
 				if (clientState_join == pWSClient->state())
 				{	
