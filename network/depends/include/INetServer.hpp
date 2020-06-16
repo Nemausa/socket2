@@ -87,8 +87,9 @@ namespace doyou {
 					//CELLLog_Info("websocket client say: PONG");
 					return;
 				}
-				auto dataStr = pWSClient->fetch_data();
-				CELLLog_Info("websocket client say: %s", dataStr);
+				auto pStr = pWSClient->fetch_data();
+				std::string dataStr(pStr, wsh.len);
+				CELLLog_Info("websocket client say: %s", dataStr.c_str());
 
 				neb::CJsonObject json;
 				if (!json.Parse(dataStr))
@@ -124,13 +125,13 @@ namespace doyou {
 					}
 					// 优先取得linkServer的Id进行转发消息
 					clientId = ClientId::get_link_id(clientId);
-					auto client = dynamic_cast<INetClientS*>( pServer->find_client(clientId));
+					auto client = dynamic_cast<INetClientS*>(find_client(clientId));
 					if (!client)
 					{
 						CELLLog_Error("INetServer::OnNetMsgWS::pServer->find_client(%d) miss.", clientId);
 						return;
 					}
-					if (SOCKET_ERROR == client->writeText(dataStr, wsh.len))
+					if (SOCKET_ERROR == client->writeText(dataStr.c_str(), dataStr.length()))
 					{
 						CELLLog_Error("INetServer::OnNetMsgWS::sslink(%s)->clientId(%d) writeText SOCKET_ERROR.", pWSClient->link_name().c_str(), clientId);
 					}
@@ -159,27 +160,26 @@ namespace doyou {
 					json.Delete("clients");
 					//替换消息类型
 					json.Replace("type", msg_type_push);
+					int clientId = 0;
+					json.Add("clientId", clientId);
 					//要推送的消息字符串
 					std::string retStr = json.ToString();
 					int size = clients.GetArraySize();
-					int clientId = 0;
 					for (size_t i = 0; i < size; i++)
 					{
 						if(!clients.Get(i, clientId))
 							continue;
 
+						json.Replace("clientId", clientId);
 						clientId = ClientId::get_link_id(clientId);
 
-						auto client = dynamic_cast<INetClientS*>(pServer->find_client(clientId));
+						auto client = dynamic_cast<INetClientS*>(find_client(clientId));
 						if (!client)
 						{
 							CELLLog_Error("INetServer::OnNetMsgWS::pServer->find_client(%d) miss.", clientId);
 							continue;
 						}
-						if (SOCKET_ERROR == client->writeText(retStr.c_str(), retStr.length()))
-						{
-							CELLLog_Error("INetServer::OnNetMsgWS::sslink(%s)->clientId(%d) writeText SOCKET_ERROR.", pWSClient->link_name().c_str(), clientId);
-						}
+						client->transfer(json);
 					}
 					
 

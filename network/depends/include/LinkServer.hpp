@@ -18,6 +18,8 @@ namespace doyou {
 				auto ssGateUrl = Config::Instance().getStr("csGateUrl", "ws://127.0.0.1:4567");
 				_ss_gate.connect("ssGate", ssGateUrl);
 
+
+				_ss_gate.on_other_push = std::bind(&LinkServer::on_other_push, this, std::placeholders::_1, std::placeholders::_2);
 				_ss_gate.reg_msg_call("onopen", std::bind(&LinkServer::onopen_csGate, this, std::placeholders::_1, std::placeholders::_2));
 				_ss_gate.reg_msg_call("ss_msg_user_logout", std::bind(&LinkServer::ss_msg_user_logout, this, std::placeholders::_1, std::placeholders::_2));
 				_ss_gate.reg_msg_call("ss_msg_user_login", std::bind(&LinkServer::ss_msg_user_login, this, std::placeholders::_1, std::placeholders::_2));
@@ -53,8 +55,39 @@ namespace doyou {
 				json["apis"].Add("ss_msg_user_login");
 
 				client->request("ss_reg_server", json, [](INetClient* client, neb::CJsonObject& msg) {
-					CELLLog_Info(msg("data").c_str());
+					int state = state_code_ok;
+					if (!msg.Get("state", state)) { CELLLog_Error("not found key<state>"); return; }
+					if (state_code_ok != state) { CELLLog_Error("ss_reg_server error state=%d msg=%s", state, msg("data").c_str()); return; }
+					int clientId = 0;
+					if (!msg["data"].Get("clientId", clientId))
+					{
+						CELLLog_Error("not found key<clientId>");
+						return;
+					}
+
+					client->ClientId(clientId);
+					CELLLog_Info("ss_reg_server:clientId=%d", clientId);
 				});
+			}
+
+			void on_other_push(INetClient* client, neb::CJsonObject& json)
+			{
+				int clientId = 0;
+				if (!json.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found key<%s>.", "clientId");
+					return;
+				}
+				// 优先取得linkServer的Id进行转发消息
+				clientId = ClientId::get_client_id(clientId); 
+				auto clients = dynamic_cast<INetClientS*>(_netserver.find_client(clientId));
+				if (!clients)
+				{
+					CELLLog_Error("LinkServer::find_client(%d) miss.", clientId);
+					return;
+				}
+				clients->transfer(json);
+			
 			}
 
 			void cs_msg_heart(Server* server, INetClientS* client, neb::CJsonObject& msg)

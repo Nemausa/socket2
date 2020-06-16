@@ -7,6 +7,9 @@ using namespace doyou::io;
 
 int main(int argc, char* args[])
 {
+#if _WIN32 && _CONSOLE
+	system("chcp 65001");
+#endif // _WIN32 && _CONSOLE
 	//设置运行日志名称
 	Log::Instance().setLogPath("GateServerLog", "w", false);
 	Config::Instance().Init(argc, args);

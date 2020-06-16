@@ -26,6 +26,8 @@ namespace doyou {
 			std::string _url;
 			//
 			int _msgId = 0;
+			//
+			int _cleint_id = 0;
 		private:
 			//
 			typedef std::function<void(INetClient*, neb::CJsonObject&)> NetEventCall;
@@ -39,6 +41,18 @@ namespace doyou {
 			//
 			std::map<int, NetEventCallData> _map_request_call;
 		public:
+			NetEventCall on_other_push = nullptr;
+		public:
+			int64_t ClientId()
+			{
+				return _cleint_id;
+			}
+
+			void ClientId(int n)
+			{
+				_cleint_id = n;
+			}
+
 			void connect(const char* link_name,const char* url)
 			{
 				_link_name = link_name;
@@ -69,8 +83,9 @@ namespace doyou {
 						return;
 					}
 
-					auto dataStr = pWSClient->fetch_data();
-					CELLLog_Info("websocket server say: %s", dataStr);
+					auto pStr = pWSClient->fetch_data();
+					std::string dataStr(pStr, wsh.len);
+					CELLLog_Info("websocket server say: %s", dataStr.c_str());
 
 					neb::CJsonObject json;
 					if (!json.Parse(dataStr))
@@ -105,6 +120,20 @@ namespace doyou {
 					//请求或推送消息
 					if (msg_type_req == msg_type || msg_type_push == msg_type || msg_type_broadcast == msg_type)
 					{
+						if (on_other_push && msg_type_push == msg_type)
+						{
+							do 
+							{
+								int clientId = 0;
+								if(!json.Get("clientId", clientId))
+									break;
+								if(clientId == _cleint_id)
+									break;
+
+								on_other_push(this, json);
+								return;
+							} while (false);
+						}
 						std::string cmd;
 						if (!json.Get("cmd", cmd))
 						{

@@ -165,8 +165,10 @@ namespace doyou {
 					// 通知网关用户已登出
 					neb::CJsonObject ret;
 					ret.Add("userId", userId);
+					ret.Add("token", user->token);
 					ret.Add("clientId", clientId);
-					client->request("ss_msg_user_logout", ret);
+					int link_id = ClientId::get_link_id(user->clientId);
+					client->push(link_id,"ss_msg_user_logout", ret);
 					//将已登录用户踢下线
 					_userManager.remove(user);
 				}
@@ -181,11 +183,12 @@ namespace doyou {
 					return;
 				}
 				//通知网关用户已登录
-				/*neb::CJsonObject ret;
+				neb::CJsonObject ret;
 				ret.Add("userId", userId);
 				ret.Add("token", token);
 				ret.Add("clientId", clientId);
-				client->request("ss_msg_user_login", ret);*/
+				int link_id = ClientId::get_link_id(clientId);
+				client->push(link_id,"ss_msg_user_login", ret);
 				
 				neb::CJsonObject json;
 				json.Add("userId", userId);
