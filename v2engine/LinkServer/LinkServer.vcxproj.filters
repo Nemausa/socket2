@@ -185,5 +185,8 @@
     <ClInclude Include="..\..\network\depends\include\LinkServer.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\network\depends\include\INetStateCode.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

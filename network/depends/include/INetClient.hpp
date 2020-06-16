@@ -19,7 +19,7 @@ namespace doyou {
 			//
 			Timestamp _time2heart;
 			//发送请求后_timeout_dt毫秒会触发超时
-			time_t _timeout_dt = 5000;
+			time_t _timeout_dt = 0;
 			//
 			std::string _link_name;
 			//
@@ -140,12 +140,12 @@ namespace doyou {
 				if (_client.isRun())
 				{
 					check_timeout();
-					if (_time2heart.getElapsedSecond() > 5.0)
+					/*if (_time2heart.getElapsedSecond() > 5.0)
 					{
 						_time2heart.update();
 						neb::CJsonObject json;
 						request("cs_msg_heart", json);
-					}
+					}*/
 					return _client.OnRun(microseconds);
 				}
 
@@ -256,6 +256,31 @@ namespace doyou {
 				if (!request(cmd, data))
 					return false;
 				
+				NetEventCallData calldata;
+				calldata.callFun = call;
+				calldata.dt = Time::system_clock_now();
+				_map_request_call[_msgId] = calldata;
+				return true;
+			}
+
+			
+			bool request(neb::CJsonObject& msg, NetEventCall call)
+			{
+				int msgId = 0;
+				if (!msg.Get("msgId", msgId))
+				{
+					msg.Add("msgId", ++_msgId);
+					
+				}
+				else
+				{
+					msg.Replace("msgId", ++_msgId);
+				}
+
+
+				if (!transfer(msg))
+					return false;
+
 				NetEventCallData calldata;
 				calldata.callFun = call;
 				calldata.dt = Time::system_clock_now();

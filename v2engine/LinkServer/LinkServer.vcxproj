@@ -172,6 +172,7 @@
     <ClInclude Include="..\..\network\depends\include\INetEvent.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetServer.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetClientS.hpp" />
+    <ClInclude Include="..\..\network\depends\include\INetStateCode.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetTransfer.hpp" />
     <ClInclude Include="..\..\network\depends\include\Iocp.hpp" />
     <ClInclude Include="..\..\network\depends\include\IocpServer.hpp" />

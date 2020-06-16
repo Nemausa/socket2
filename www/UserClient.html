@@ -115,10 +115,10 @@
                     if(callback)
                         callback(self);
 
-                    self.intervalId = setInterval(function()
-                    {
-                        self.request("cs_msg_heart", null);
-                    },5000);
+                    // self.intervalId = setInterval(function()
+                    // {
+                    //     self.request("cs_msg_heart", null);
+                    // },5000);
                 }
 
                 this.websocket.onclose = function(){

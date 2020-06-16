@@ -76,6 +76,11 @@ namespace doyou {
 				_token = str;
 			}
 
+			int clientId()
+			{
+				return (int)this->sockfd();
+			}
+
 			int64_t userId()
 			{
 				return _userId;
@@ -89,6 +94,17 @@ namespace doyou {
 			bool is_login()
 			{
 				return _userId != 0;
+			}
+
+			bool transfer(neb::CJsonObject& msg)
+			{
+				std::string retStr = msg.ToString();
+				if (SOCKET_ERROR == this->writeText(retStr.c_str(), retStr.length()))
+				{
+					CELLLog_Error("INetClientS::transfer::writeText SOCKET_ERROR");
+					return false;
+				}
+				return true;
 			}
 
 			template<class T>

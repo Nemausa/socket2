@@ -111,6 +111,7 @@ namespace doyou {
 					return;
 				}
 
+				clientId = ClientId::get_client_id(clientId);
 				auto ClientS = dynamic_cast<INetClientS*>(_netserver.find_client(clientId));
 				if (!ClientS)
 				{
@@ -140,6 +141,7 @@ namespace doyou {
 					return;
 				}
 
+				clientId = ClientId::get_client_id(clientId);
 				auto ClientS = dynamic_cast<INetClientS*>(_netserver.find_client(clientId));
 				if (!ClientS)
 				{
@@ -160,7 +162,36 @@ namespace doyou {
 
 			void on_other_msg(Server* server, INetClientS* client, std::string& cmd, neb::CJsonObject& msg)
 			{
-				_ss_gate.transfer(msg);	
+				int clientId = 0;
+				auto str = msg.ToString();
+				CELLLog_Info("%s",str);
+				if (!msg.Get("clientId", clientId))
+				{
+					CELLLog_Error("not found clientId");
+					return;
+				}
+
+				int msgId = 0;
+				if (!msg.Get("msgId", msgId))
+				{
+					CELLLog_Error("LinkServer::on_other_msg::not found key<msgId>");
+					return;
+				}
+
+				_ss_gate.request(msg,[this, clientId, msgId](INetClient* client, neb::CJsonObject& json) {
+					auto clients = dynamic_cast<INetClientS*>(_netserver.find_client(clientId));
+					if (!clients)
+					{
+						CELLLog_Error("LinkServer::on_other_msg::_netserver.find_client(%d) miss", clientId);
+						return;
+					}
+
+					json.Replace("msgId", msgId);
+					json.Delete("clientId");
+
+					clients->transfer(json);
+				});
+				
 			}
 
 

@@ -181,11 +181,11 @@ namespace doyou {
 					return;
 				}
 				//通知网关用户已登录
-				neb::CJsonObject ret;
+				/*neb::CJsonObject ret;
 				ret.Add("userId", userId);
 				ret.Add("token", token);
 				ret.Add("clientId", clientId);
-				client->request("ss_msg_user_login", ret);
+				client->request("ss_msg_user_login", ret);*/
 				
 				neb::CJsonObject json;
 				json.Add("userId", userId);

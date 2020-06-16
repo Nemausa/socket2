@@ -332,11 +332,11 @@ namespace doyou {
 				auto t1 = _tTime.getElapsedSecond();
 				if (t1 >= 1.0)
 				{
-					CELLLog_Info("thread<%d>,time<%lf>,socket<%d>,Accept<%d>,Join<%d>,recv<%d>,msg<%d>"
+					/*CELLLog_Info("thread<%d>,time<%lf>,socket<%d>,Accept<%d>,Join<%d>,recv<%d>,msg<%d>"
 						, (int)_cellServers.size()
 						, t1, _sock
 						, (int)_clientAccept, (int)_clientJoin
-						, (int)_recvCount, (int)_msgCount);
+						, (int)_recvCount, (int)_msgCount);*/
 					_recvCount = 0;
 					_msgCount = 0;
 					_tTime.update();

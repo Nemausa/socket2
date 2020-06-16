@@ -107,7 +107,8 @@ namespace doyou {
 				
 				//服务端响应
 
-				if (msg_type_resp==msg_type || msg_type_push == msg_type)
+				if (msg_type_resp==msg_type ||
+					msg_type_push == msg_type)
 				{
 					if (!pWSClient->is_ss_link())
 					{
@@ -121,7 +122,8 @@ namespace doyou {
 						CELLLog_Error("not found key<%s>.", "clientId");
 						return;
 					}
-
+					// 优先取得linkServer的Id进行转发消息
+					clientId = ClientId::get_link_id(clientId);
 					auto client = dynamic_cast<INetClientS*>( pServer->find_client(clientId));
 					if (!client)
 					{
@@ -166,6 +168,8 @@ namespace doyou {
 						if(!clients.Get(i, clientId))
 							continue;
 
+						clientId = ClientId::get_link_id(clientId);
+
 						auto client = dynamic_cast<INetClientS*>(pServer->find_client(clientId));
 						if (!client)
 						{
@@ -191,8 +195,18 @@ namespace doyou {
 						return;
 					}
 
-					int clientId = (int)pWSClient->sockfd();
-					json.Add("clientId", clientId);
+					int clientId = 0;
+					if (!json.Get("clientId", clientId))
+					{
+						// linkserver
+						json.Add("clientId", pWSClient->clientId());
+					}
+					else
+					{
+						// gateserver
+						clientId = ClientId::set_link_id(pWSClient->clientId(), clientId);
+						json.Replace("clientId", clientId);
+					}
 
 					if (pWSClient->is_login())
 					{

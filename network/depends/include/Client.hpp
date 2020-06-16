@@ -8,7 +8,7 @@
 namespace doyou {
 	namespace io {
 		//客户端心跳检测死亡计时时间
-#define CLIENT_HREAT_DEAD_TIME 10000
+#define CLIENT_HREAT_DEAD_TIME 1000000
 		//在间隔指定时间后才允许发送
 #define CLIENT_SEND_BUFF_TIME 200
 
@@ -47,6 +47,8 @@ namespace doyou {
 				resetDTHeart();
 				resetDTSend();
 			}
+
+		
 
 			virtual ~Client()
 			{
