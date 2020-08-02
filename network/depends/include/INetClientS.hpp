@@ -3,7 +3,7 @@
 
 #include"WebSocketClientS.hpp"
 #include"CJsonObject.hpp"
-#include "INetStateCode.hpp"
+#include"INetStateCode.hpp"
 
 namespace doyou {
 	namespace io {
@@ -26,22 +26,22 @@ namespace doyou {
 
 			}
 
-			std::string& link_name()
+			const std::string& link_name()
 			{
 				return _link_name;
 			}
 
-			void link_name(std::string& str)
+			void link_name(const std::string& str)
 			{
 				_link_name = str;
 			}
 
-			std::string& link_type()
+			const std::string& link_type()
 			{
 				return _link_type;
 			}
 
-			void link_type(std::string& str)
+			void link_type(const std::string& str)
 			{
 				_link_type = str;
 			}
@@ -101,39 +101,37 @@ namespace doyou {
 				std::string retStr = msg.ToString();
 				if (SOCKET_ERROR == this->writeText(retStr.c_str(), retStr.length()))
 				{
-					CELLLog_Error("INetClientS::transfer::writeText SOCKET_ERROR");
+					CELLLog_Error("INetClientS::transfer::writeText SOCKET_ERROR.");
 					return false;
 				}
 				return true;
 			}
 
-			template<class T>
-			void response(neb::CJsonObject& msg, const T& data, int state = state_code_ok)
+			template<typename vT>
+			void response(neb::CJsonObject& msg, const vT& data, int state = state_code_ok)
 			{
 				int msgId = 0;
 				if (!msg.Get("msgId", msgId))
 				{
-					CELLLog_Error("not found key<%s>.", "msgId");
+					CELLLog_Error("not found key<msgId>.");
 					return;
 				}
 
 				neb::CJsonObject ret;
-				ret.Add("msgId", msgId);
 				ret.Add("state", state);
+				ret.Add("msgId", msgId);
 				ret.Add("type", msg_type_resp);
-				ret.Add("time", (int64)Time::system_clock_now());
+				ret.Add("time", Time::system_clock_now());
 				ret.Add("data", data);
 
-				std::string retStr = ret.ToString();
-				this->writeText(retStr.c_str(), retStr.length());
+				transfer(ret);
 			}
 
-			template<class T>
-			void resp_error(neb::CJsonObject& msg, const T& data, int state = state_code_error)
+			template<typename vT>
+			void resp_error(neb::CJsonObject& msg, const vT& data, int state = state_code_error)
 			{
 				response(msg, data, state);
 			}
-
 		};
 	}
 }

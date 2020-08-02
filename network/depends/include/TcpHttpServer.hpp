@@ -4,7 +4,6 @@
 #include"TcpServerMgr.hpp"
 #include"HttpClientS.hpp"
 
-
 namespace doyou {
 	namespace io {
 		class TcpHttpServer :public TcpServerMgr

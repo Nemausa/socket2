@@ -47,7 +47,7 @@ namespace doyou {
 
 					if (handshake())
 					{
-						CELLLog_Info("WebSocketClientC::handshake, Good.");
+						//CELLLog_Info("WebSocketClientC::handshake, Good.");
 						pWSClient->state(clientState_run);
 
 						if (onopen)
@@ -178,14 +178,14 @@ namespace doyou {
 						continue;
 					}
 					else {
-						if (pAddr->ai_family == AF_INET6)
-							Log::Info("%s ipv6: %s", hostname, ipStr);
-						else if (pAddr->ai_family == AF_INET)
-							Log::Info("%s ipv4: %s", hostname, ipStr);
-						else {
-							Log::Info("%s addr: %s", hostname, ipStr);
-							continue;
-						}
+						//if (pAddr->ai_family == AF_INET6)
+						//	Log::Info("%s ipv6: %s", hostname, ipStr);
+						//else if (pAddr->ai_family == AF_INET)
+						//	Log::Info("%s ipv4: %s", hostname, ipStr);
+						//else {
+						//	Log::Info("%s addr: %s", hostname, ipStr);
+						//	continue;
+						//}
 
 						if (connet2ip(pAddr->ai_family, ipStr, port_))
 						{
@@ -202,7 +202,7 @@ namespace doyou {
 			{
 				if (_pWSClient)
 					return _pWSClient->writeText(pData, len);
-				return 0;
+				return SOCKET_ERROR;
 			}
 
 			void send_buff_size(int n)
@@ -268,7 +268,7 @@ namespace doyou {
 				if (SOCKET_ERROR == Connect(ip, port))
 					return false;
 
-				CELLLog_Info("connet2ip(%s,%d)", ip, port);
+				//CELLLog_Info("connet2ip(%s,%d)", ip, port);
 				return true;
 			}
 

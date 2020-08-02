@@ -44,5 +44,8 @@
     <ClInclude Include="..\..\network\depends\include\UserClient.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\network\depends\include\TaskTimer.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

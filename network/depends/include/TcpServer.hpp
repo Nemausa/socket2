@@ -208,7 +208,7 @@ namespace doyou {
 			void AcceptClient(SOCKET cSock, char* ip)
 			{
 				NetWork::make_reuseaddr(cSock);
-				CELLLog_Info("Accept_IP: %s, %d", ip, cSock);
+				//CELLLog_Info("Accept_IP: %s, %d", ip, cSock);
 				if (_clientAccept < _nMaxClient)
 				{
 					_clientAccept++;
@@ -228,21 +228,6 @@ namespace doyou {
 				return new Client(cSock, _nSendBuffSize, _nRecvBuffSize);
 			}
 
-			Client* find_client(int id)
-			{
-				for (auto pServer : _cellServers)
-				{
-					Client* c = pServer->find_client(id);
-					if (c)
-					{
-						return c;
-					}
-				}
-
-				return nullptr;
-				
-			}
-
 			void addClientToCELLServer(Client* pClient)
 			{
 				//查找客户数量最少的CELLServer消息处理对象
@@ -255,6 +240,20 @@ namespace doyou {
 					}
 				}
 				pMinServer->addClient(pClient);
+			}
+
+			Client* find_client(int id)
+			{
+				//查找客户数量最少的CELLServer消息处理对象
+				for (auto pServer : _cellServers)
+				{
+					Client* c = pServer->find_client(id);
+					if (c)
+					{
+						return c;
+					}
+				}
+				return nullptr;
 			}
 
 			template<class ServerT>
@@ -308,7 +307,7 @@ namespace doyou {
 			{
 				_clientAccept--;
 				_clientJoin--;
-				CELLLog_Info("client<%d> leave", pClient->sockfd());
+				//CELLLog_Info("client<%d> leave", pClient->sockfd());
 			}
 			//cellServer 4 多个线程触发 不安全
 			//如果只开启1个cellServer就是安全的
@@ -329,14 +328,15 @@ namespace doyou {
 			//计算并输出每秒收到的网络消息
 			void time4msg()
 			{
+				//return;
 				auto t1 = _tTime.getElapsedSecond();
 				if (t1 >= 1.0)
 				{
-					/*CELLLog_Info("thread<%d>,time<%lf>,socket<%d>,Accept<%d>,Join<%d>,recv<%d>,msg<%d>"
+					CELLLog_Info("thread<%d>,time<%lf>,socket<%d>,Accept<%d>,Join<%d>,recv<%d>,msg<%d>"
 						, (int)_cellServers.size()
 						, t1, _sock
 						, (int)_clientAccept, (int)_clientJoin
-						, (int)_recvCount, (int)_msgCount);*/
+						, (int)_recvCount, (int)_msgCount);
 					_recvCount = 0;
 					_msgCount = 0;
 					_tTime.update();

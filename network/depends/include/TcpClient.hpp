@@ -100,6 +100,14 @@ namespace doyou {
 				}
 			}
 
+			//并非立即关闭socket
+			//并非立即释放Client对象
+			//而是将Client的状态设置为clientState_close
+			void toClose()
+			{
+				_pClient->onClose();
+			}
+
 			//处理网络消息
 			virtual bool OnRun(int microseconds = 1) = 0;
 

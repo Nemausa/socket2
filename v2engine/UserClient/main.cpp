@@ -7,17 +7,22 @@ using namespace doyou::io;
 
 int main(int argc, char* args[])
 {
+
+#if _WIN32 && _CONSOLE
+	system("chcp 65001");
+#endif // _WIN32 && _CONSOLE
 	//设置运行日志名称
 	Log::Instance().setLogPath("UserClientLog", "w", false);
 	Config::Instance().Init(argc, args);
 
-	const int naxx = 1;
+	const int naxx = 9;
 
 	UserClient clients[naxx];
 	for (size_t i = 0; i < naxx; i++)
 	{
-		clients[i].Init();
+		clients[i].Init(i);
 	}
+
 
 	while (true)
 	{

@@ -226,6 +226,12 @@ namespace doyou {
 
 			int writeText(const char* pData, int len)
 			{
+				if (!canWrite(len + 16))
+				{
+					CELLLog_Error("WebSocketClientC::writeText -> !canWrite");
+					return SOCKET_ERROR;
+				}
+
 				int ret = writeHeader(opcode_TEXT, len, true, _mask_key);
 				if (SOCKET_ERROR != ret)
 				{

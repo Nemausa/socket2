@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\network\depends\include\INetClient.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetTransfer.hpp" />
+    <ClInclude Include="..\..\network\depends\include\TaskTimer.hpp" />
     <ClInclude Include="..\..\network\depends\include\UserClient.hpp" />
     <ClInclude Include="..\..\network\depends\json\cJSON.h" />
     <ClInclude Include="..\..\network\depends\json\CJsonObject.hpp" />

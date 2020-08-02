@@ -16,7 +16,7 @@ namespace doyou {
 			std::function<void(Server*, INetClientS*, std::string&, neb::CJsonObject&)> on_other_msg = nullptr;
 			std::function<void(Server*, INetClientS*, std::string&, neb::CJsonObject&)> on_broadcast_msg = nullptr;
 			std::function<void(INetClientS*)> on_client_leave = nullptr;
-			std::function<void(Server*)> on_client_run = nullptr;
+			std::function<void(Server*)> on_net_run = nullptr;
 		private:
 			virtual Client* makeClientObj(SOCKET cSock)
 			{
@@ -75,8 +75,8 @@ namespace doyou {
 
 			virtual void OnNetRun(Server* pServer)
 			{
-				if (on_client_run)
-					on_client_run(pServer);
+				if (on_net_run)
+					on_net_run(pServer);
 			}
 		public:
 			virtual void OnNetMsgWS(Server* pServer, INetClientS* pWSClient)
@@ -89,7 +89,8 @@ namespace doyou {
 				}
 				auto pStr = pWSClient->fetch_data();
 				std::string dataStr(pStr, wsh.len);
-				CELLLog_Info("websocket client say: %s", dataStr.c_str());
+
+				//CELLLog_Info("websocket client say: %s", dataStr.c_str());
 
 				neb::CJsonObject json;
 				if (!json.Parse(dataStr))
@@ -105,30 +106,29 @@ namespace doyou {
 					return;
 				}
 
-				
 				//服务端响应
-
-				if (msg_type_resp==msg_type ||
+				//服务端推送
+				if (msg_type_resp== msg_type ||
 					msg_type_push == msg_type)
 				{
 					if (!pWSClient->is_ss_link())
 					{
-						CELLLog_Error("pWSClient->is_ss_link=false, is_resp=true.");
+						CELLLog_Error("pWSClient->is_ss_link=false, msg_type = %d.", msg_type);
 						return;
 					}
 
 					int clientId = 0;
 					if (!json.Get("clientId", clientId))
 					{
-						CELLLog_Error("not found key<%s>.", "clientId");
+						CELLLog_Error("not found key<clientId>.");
 						return;
 					}
-					// 优先取得linkServer的Id进行转发消息
+					//优先取得linkServer的Id进行转发消息
 					clientId = ClientId::get_link_id(clientId);
-					auto client = dynamic_cast<INetClientS*>(find_client(clientId));
+					auto client = dynamic_cast<INetClientS*>( find_client(clientId));
 					if (!client)
 					{
-						CELLLog_Error("INetServer::OnNetMsgWS::pServer->find_client(%d) miss.", clientId);
+						CELLLog_Error("INetServer::OnNetMsgWS::find_client(%d) miss.", clientId);
 						return;
 					}
 					if (SOCKET_ERROR == client->writeText(dataStr.c_str(), dataStr.length()))
@@ -138,54 +138,83 @@ namespace doyou {
 
 					return;
 				}
-
-				// 服务端批量推送
-				if (msg_type_push_pro == msg_type)
+				//服务端批量推送
+				if (msg_type_push_s == msg_type)
 				{
 					if (!pWSClient->is_ss_link())
 					{
-						CELLLog_Error("pWSClient->is_ss_link=false, is_resp=true.");
+						CELLLog_Error("pWSClient->is_ss_link=false, msg_type = %d.", msg_type);
 						return;
 					}
-
 					//获得目标用户id
 					auto clients = json["clients"];
 					if (!clients.IsArray())
 					{
-						CELLLog_Error("not found clients");
+						CELLLog_Error("not found key<clients>.");
 						return;
 					}
-
 					//移除原始消息目标用户数组
-					json.Delete("clients");
-					//替换消息类型
+					//json.Delete("clients");
 					json.Replace("type", msg_type_push);
-					int clientId = 0;
-					json.Add("clientId", clientId);
-					//要推送的消息字符串
-					std::string retStr = json.ToString();
+					//遍历目标开始推送
 					int size = clients.GetArraySize();
+					int clientId = 0;
+					//json.Add("clientId", clientId);
+					//for (size_t i = 0; i < size; i++)
+					//{
+					//	if (!clients.Get(i, clientId))
+					//		continue;
+					//	//每条推送消息的目标不同
+					//	json.Replace("clientId", clientId);
+					//	//
+					//	clientId = ClientId::get_link_id(clientId);
+					//	auto client = dynamic_cast<INetClientS*>(find_client(clientId));
+					//	if (!client)
+					//	{
+					//		CELLLog_Error("INetServer::OnNetMsgWS::find_client(%d) miss.", clientId);
+					//		return;
+					//	}
+					//	client->transfer(json);
+					//}
+
+					//分类<linkid,clients>
+					std::map<INetClientS*, neb::CJsonObject> temp;
 					for (size_t i = 0; i < size; i++)
 					{
-						if(!clients.Get(i, clientId))
-							continue;
+							if (!clients.Get(i, clientId))
+								continue;
 
-						json.Replace("clientId", clientId);
-						clientId = ClientId::get_link_id(clientId);
-
-						auto client = dynamic_cast<INetClientS*>(find_client(clientId));
-						if (!client)
-						{
-							CELLLog_Error("INetServer::OnNetMsgWS::pServer->find_client(%d) miss.", clientId);
-							continue;
-						}
-						client->transfer(json);
+							auto link_id = ClientId::get_link_id(clientId);
+							auto link_gate = dynamic_cast<INetClientS*>(find_client(link_id));
+							if (!link_gate)
+							{
+								CELLLog_Error("INetServer::OnNetMsgWS::find_link_gate(%d) miss.", link_id);
+								continue;
+							}
+							//相同的linkServer上的client存储在一起
+							auto itr = temp.find(link_gate);
+							if (itr == temp.end())
+							{
+								neb::CJsonObject clients;
+								clients.Add(clientId);
+								temp[link_gate] = clients;
+							}
+							else {
+								itr->second.Add(clientId);
+							}
 					}
-					
-
+					//批量推送消息给linkServer
+					for (auto& itr : temp)
+					{
+						json.Delete("clients");
+						json.Add("clients", itr.second);
+						itr.first->transfer(json);
+					}
 					return;
 				}
 
+				//用户端请求
+				//服务端请求
 				if (msg_type_req == msg_type)
 				{
 					std::string cmd;
@@ -194,19 +223,62 @@ namespace doyou {
 						CELLLog_Error("not found key<%s>.", "cmd");
 						return;
 					}
-
+					//
 					int clientId = 0;
 					if (!json.Get("clientId", clientId))
-					{
-						// linkserver
+					{//
 						json.Add("clientId", pWSClient->clientId());
 					}
-					else
-					{
-						// gateserver
+					else {
 						clientId = ClientId::set_link_id(pWSClient->clientId(), clientId);
 						json.Replace("clientId", clientId);
 					}
+
+					//is_cc 标识是否为LinkGate转发的客户端请求
+					bool is_cc = false;
+					json.Get("is_cc", is_cc);
+					if (!is_cc)
+					{//非LinkGate转发的请求，才做以下处理
+						if (pWSClient->is_login())
+						{
+							json.Add("userId", pWSClient->userId());
+						}
+
+						if (pWSClient->is_ss_link())
+						{
+							json.Add("is_ss_link", true, true);
+						}
+					}
+
+					//网关本地支持的指令
+					if (on_net_msg_do(pServer, pWSClient, cmd, json))
+						return;
+
+					if (pWSClient->is_cc_link() || pWSClient->is_ss_link())
+					{
+						on_other_msg(pServer, pWSClient, cmd, json);
+					}
+
+					return;
+				}
+
+				//只有服务可以发出广播
+				if (msg_type_broadcast == msg_type)
+				{
+					if (!pWSClient->is_ss_link())
+					{
+						CELLLog_Error("pWSClient->is_ss_link=false, msg_type = %d.", msg_type);
+						return;
+					}
+
+					std::string cmd;
+					if (!json.Get("cmd", cmd))
+					{
+						CELLLog_Error("not found key<%s>.", "cmd");
+						return;
+					}
+
+					json.Add("clientId", pWSClient->clientId());
 
 					if (pWSClient->is_login())
 					{
@@ -218,56 +290,16 @@ namespace doyou {
 						json.Add("is_ss_link", true, true);
 					}
 
-					//网关本地支持的命令
-					if (on_net_msg_do(pServer, pWSClient, cmd, json))
-						return;
-
-
-					if (pWSClient->is_cc_link() || pWSClient->is_ss_link())
-					{
-						on_other_msg(pServer, pWSClient, cmd, json);
-					}
-					
-
-					return;
-				}
-
-				//只有服务可以广播
-				if (msg_type_broadcast == msg_type)
-				{
-					if (!pWSClient->is_ss_link())
-					{
-						CELLLog_Error("pWSClient->is_ss_link=false, msg_type_broadcast.");
-						return;
-					}
-
-					std::string cmd;
-					if (!json.Get("cmd", cmd))
-					{
-						CELLLog_Error("not found key<%s>.", "cmd");
-						return;
-					}
-
-					int clientId = (int)pWSClient->sockfd();
-					json.Add("clientId", clientId);
-
-					if (pWSClient->is_login())
-					{
-						json.Add("userId", pWSClient->userId());
-					}
-
-					
 					on_broadcast_msg(pServer, pWSClient, cmd, json);
-					
-
 
 					return;
 				}
+
+				CELLLog_Error("INetServer::OnNetMsgWS:: unknow msg type <%d>.", msg_type);
 			}
 
 			void Init(const char* strIP, uint16_t nPort)
 			{
-				
 				int nThread = 1;//Config::Instance().getInt("nThread", 1);
 
 				if (strcmp(strIP, "any") == 0)

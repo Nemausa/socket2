@@ -8,7 +8,7 @@
 namespace doyou {
 	namespace io {
 		//客户端心跳检测死亡计时时间
-#define CLIENT_HREAT_DEAD_TIME 1000000
+#define CLIENT_HREAT_DEAD_TIME 100000
 		//在间隔指定时间后才允许发送
 #define CLIENT_SEND_BUFF_TIME 200
 
@@ -48,8 +48,6 @@ namespace doyou {
 				resetDTSend();
 			}
 
-		
-
 			virtual ~Client()
 			{
 				//CELLLog_Info("~Client[sId=%d id=%d socket=%d]", serverId, id, (int)_sockfd);
@@ -69,6 +67,11 @@ namespace doyou {
 			SOCKET sockfd()
 			{
 				return _sockfd;
+			}
+
+			bool canWrite(int size)
+			{
+				return _sendBuff.canWrite(size);
 			}
 
 			int RecvData()
@@ -191,7 +194,7 @@ namespace doyou {
 
 			void onClose()
 			{
-				CELLLog_Info("sockfd<%d> onClose", _sockfd);
+				//CELLLog_Info("sockfd<%d> onClose", _sockfd);
 				state(clientState_close);
 			}
 

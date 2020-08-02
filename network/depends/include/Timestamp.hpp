@@ -10,12 +10,12 @@ namespace doyou {
 		{
 		public:
 			//获取当前计算机运行时间 (毫秒)
-			static long long getNowInMilliSec()
+			static int64_t getNowInMilliSec()
 			{
 				return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
 			}
 			//获取当前时间 (毫秒)
-			static long long system_clock_now()
+			static int64_t system_clock_now()
 			{
 				return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 			}
@@ -55,7 +55,7 @@ namespace doyou {
 			/**
 			*   获取微妙
 			*/
-			long long getElapsedTimeInMicroSec()
+			int64_t getElapsedTimeInMicroSec()
 			{
 				/*
 				LARGE_INTEGER endCount;

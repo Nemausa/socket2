@@ -168,7 +168,6 @@
     <ClInclude Include="..\..\network\depends\include\GroupServer.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetClient.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetTransfer.hpp" />
-    <ClInclude Include="..\..\network\depends\include\LoginServer.hpp" />
     <ClInclude Include="..\..\network\depends\include\INetStateCode.hpp" />
     <ClInclude Include="..\..\network\depends\include\UserGroup.hpp" />
     <ClInclude Include="..\..\network\depends\include\UserManager.hpp" />

@@ -26,7 +26,6 @@ namespace doyou {
 				{
 					CELLLog_Error("DBManager::open(%s) error: %s", db_name, e.errorMessage());
 				}
-
 				return false;
 			}
 
@@ -56,7 +55,7 @@ namespace doyou {
 
 			void run()
 			{
-				if (_timestamp.getElapsedSecond() > 5.0)
+				if (_timestamp.getElapsedSecond() > 10.0)
 				{
 					commit();
 					_timestamp.update();

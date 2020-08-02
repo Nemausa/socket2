@@ -8,15 +8,13 @@
     <button onclick="_send('hello web')">send</button>
     <button onclick="_close()">close</button>
     <script>
-	//信息编号
-			var msgIndex = 0;
-			//输出信息到文本区域
-			function add_log_msg(msg)
-			{
-				console.log(msg);
-			}
-			
-       class UserClient
+
+        function add_log_msg(msg)
+        {
+            console.log(msg);
+        }
+        
+        class UserClient
         {
             constructor()
             {
@@ -128,24 +126,39 @@
         }
     </script>
     <script>
+        /*
+        var client = new UserClient();
+        function _createWebSocket() {
+            client.connect("ws://127.0.0.1:4567");
+        }
+
+        function _send(msg) {
+            client.register("test001", "abc1234");
+        }
+
+        function _close() {
+            client.close();
+        }
+        */
+
         var users = new Array();
         var count = 100;
         function _createWebSocket() {
             for(var n = 0; n < count; n++)
             {
                 users[n] =  new UserClient();
-				users[n].username = "test00"+n;
+                users[n].username = "user00"+n;
                 users[n].password = "abc1234";
-				users[n].nickname = "nicknasme"+n;
-				users[n].sex = n%2;
-                users[n].connect("ws://127.0.0.1:4567");
+                users[n].nickname = "mmmm00"+n;
+                users[n].sex = n%2;
+                users[n].connect("ws://192.168.88.133:4567");
             }
         }
 
         function _send(msg) {
             for(var n = 0; n < count; n++)
             {
-                users[n].register(users[n].username, users[n].password, users[n].nickname, users[n].sex);
+                users[n].register(users[n].username, users[n].password,users[n].nickname,users[n].sex);
             }
         }
 

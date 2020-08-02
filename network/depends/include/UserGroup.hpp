@@ -12,8 +12,11 @@
 #define _USERGROUP_H_
 
 
-#include <vector>
-#include "INetClientS.hpp"
+#include"CJsonObject.hpp"
+#include"INetClientS.hpp"
+#include<vector>
+#include<algorithm>
+
 
 namespace doyou
 {
@@ -41,14 +44,13 @@ namespace doyou
 					_member.erase(itr);
 					return true;
 				}
-
 				return false;
 			}
 
 			bool has(int64_t group_id)
 			{
 				auto itr = std::find(_member.begin(), _member.end(), group_id);
-				return itr != _member.end();
+				return (itr != _member.end());
 			}
 
 
@@ -59,7 +61,7 @@ namespace doyou
 
 			void id(int id)
 			{
-				_id = id;;
+				_id = id;
 			}
 
 			bool empty()
@@ -71,31 +73,27 @@ namespace doyou
 			{
 				return _member;
 			}
-
 		private:
 			std::vector<int64_t> _member;
 			int _id = 0;
 		};
 
+		//会话小组管理
 		class UserGroup
 		{
-
 		private:
 			std::map<int64_t, group_id_list> _map_member;
 			int _index_id = 10000;
 		public:
-			bool add(int64_t& user_id, int64_t group_id)
+			bool add(int64_t user_id, int64_t group_id)
 			{
-
-				//先查找user_id是否已经存在
+				//先查找user_id是否已存在
 				auto itr = _map_member.find(user_id);
 				if (itr != _map_member.end())
 				{
-					//join可能失败
 					return itr->second.add(group_id);
 				}
-				else
-				{
+				else {
 					group_id_list a;
 					a.add(group_id);
 					a.id(user_id);
@@ -105,26 +103,16 @@ namespace doyou
 				return true;
 			}
 
-			bool join(int64_t user_id, int group_key, int64_t group_id)
-			{
-				auto itr = _map_member.find(user_id);
-				if (itr == _map_member.end())
-				{
-					return false;
-				}
-
-				itr->second.add(group_id);
-				return true;
-			}
-
 			bool find(int64_t group_id, std::vector<int>& group_list)
 			{
-				for (auto& itr : _map_member)
+				
+				for (auto& itr: _map_member)
 				{
-					itr.second.has(group_id);
-					group_list.push_back(itr.second.id());
+					if (itr.second.has(group_id))
+					{
+						group_list.push_back(itr.second.id());
+					}
 				}
-
 				return !group_list.empty();
 			}
 
@@ -135,19 +123,20 @@ namespace doyou
 					return false;
 
 				auto ret = itr->second.del(group_id);
+
 				if (itr->second.empty())
 					_map_member.erase(itr);
+				
 				return ret;
 			}
 
-			group_id_list* get(int user_id)
+			group_id_list* get(int64_t user_id)
 			{
 				auto itr = _map_member.find(user_id);
 				if (itr == _map_member.end())
 					return nullptr;
 
 				return &itr->second;
-
 			}
 
 			bool has(int64_t user_id, int64_t group_id)
@@ -161,9 +150,4 @@ namespace doyou
 		};
 	}
 }
-
-
-
-#endif  //_USERGROUP_H_
-
-
+#endif // !_doyou_io_UserGroup_HPP_

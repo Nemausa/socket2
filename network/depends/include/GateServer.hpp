@@ -17,12 +17,13 @@ namespace doyou {
 				const char* strIP = Config::Instance().getStr("strIP", "any");
 				uint16_t nPort = Config::Instance().getInt("nPort", 4567);
 				_netserver.Init(strIP, nPort);
+
 				_netserver.on_other_msg = std::bind(&GateServer::on_other_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				_netserver.on_broadcast_msg = std::bind(&GateServer::on_broadcast_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				_netserver.on_client_leave = std::bind(&GateServer::on_client_leave, this, std::placeholders::_1);
+
 				_netserver.reg_msg_call("cs_msg_heart", std::bind(&GateServer::cs_msg_heart, this,std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 				_netserver.reg_msg_call("ss_reg_server", std::bind(&GateServer::ss_reg_server, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-				
 			}
 
 			void Close()
@@ -35,7 +36,13 @@ namespace doyou {
 			{
 				if (client->is_cc_link() || client->is_ss_link())
 				{
+					//CELLLog_Info("GateServer::cs_msg_heart");
 
+					//neb::CJsonObject ret;
+					//ret.Add("data", "wo ye bu ji dao.");
+					//client->response(msg, ret);
+
+					//client->respone(msg, "wo ye bu ji dao.");
 				}
 			}
 
@@ -45,7 +52,7 @@ namespace doyou {
 				auto sskey_local = Config::Instance().getStr("sskey", "ssmm00@123456");
 				if (sskey != sskey_local)
 				{
-					client->resp_error(msg, "sskey error");
+					client->resp_error(msg, "sskey error.");
 					return;
 				}
 				auto type = msg["data"]("type");
@@ -59,7 +66,7 @@ namespace doyou {
 
 				if (!apis.IsArray())
 				{
-					client->resp_error(msg, "not found apis");
+					client->resp_error(msg, "not found apis.");
 					return;
 				}
 
@@ -71,11 +78,9 @@ namespace doyou {
 				}
 
 				neb::CJsonObject json;
-				json.Add("clientId", client->clientId());
+				json.Add("ClientId", client->clientId());
 				client->response(msg, json);
-
 			}
-
 
 			void on_other_msg(Server* server, INetClientS* client, std::string& cmd, neb::CJsonObject& msg)
 			{
@@ -84,69 +89,58 @@ namespace doyou {
 				if (state_code_undefine_cmd == ret)
 				{
 					CELLLog_Info("on_other_msg: transfer not found cmd<%s>.", cmd.c_str());
-					client->response(msg, "undefine cmd", state_code_undefine_cmd);
+					client->response(msg, "undefine cmd!", state_code_undefine_cmd);
 				}
 				else if (state_code_server_busy == ret)
 				{
-					CELLLog_Info("on_other_msg: transfer not found cmd<%s>.", cmd.c_str());
-					client->response(msg, "server busy", state_code_server_busy);
+					CELLLog_Info("on_other_msg: server busy! cmd<%s>.", cmd.c_str());
+					client->response(msg, "server busy!", state_code_server_busy);
 				}
 				else if (state_code_server_off == ret)
 				{
-					CELLLog_Info("on_other_msg: transfer not found cmd<%s>.", cmd.c_str());
-					client->response(msg, "server offline", state_code_server_off);
+					CELLLog_Info("on_other_msg: server offline! cmd<%s>.", cmd.c_str());
+					client->response(msg, "server offline!", state_code_server_off);
 				}
-				
-			}
-
-
-			template<class T>
-			void broadcast(const std::string& cmd, const T& data)
-			{
-				neb::CJsonObject ret;
-				ret.Add("cmd", cmd);
-				ret.Add("type", msg_type_broadcast);
-				ret.Add("time", Time::system_clock_now());
-				ret.Add("data", data);
-				
-				auto str = ret.ToString();
-				_transfer.on_broadcast_do(cmd, str);
 			}
 
 			void on_broadcast_msg(Server* server, INetClientS* client, std::string& cmd, neb::CJsonObject& msg)
 			{
 				auto str = msg.ToString();
 				_transfer.on_broadcast_do(cmd, str);
+			}
 
+			template<typename vT>
+			void broadcast(const std::string& cmd, const vT& data)
+			{
+				neb::CJsonObject ret;
+				ret.Add("cmd", cmd);
+				ret.Add("type", msg_type_broadcast);
+				ret.Add("time", Time::system_clock_now());
+				ret.Add("data", data);
+
+				auto str = ret.ToString();
+				_transfer.on_broadcast_do(cmd, str);
 			}
 
 			void on_client_leave(INetClientS* client)
 			{
-				if (client->is_ss_link())
+				if(client->is_ss_link())
 					_transfer.del(client);
 
 				if (client->is_login())
 				{
 					neb::CJsonObject msg;
+					msg.Add("clientId", client->clientId());
 					msg.Add("userId", client->userId());
-					msg.Add("clientId", client->sockfd());
-
 					broadcast("ss_msg_user_exit", msg);
 				}
-				
+
 				{
 					neb::CJsonObject msg;
-					msg.Add("userId", client->userId());
-					msg.Add("clientId", client->sockfd());
-
+					msg.Add("clientId", client->clientId());
 					broadcast("ss_msg_client_exit", msg);
 				}
-
-				
 			}
-
-
-
 		};
 	}
 }

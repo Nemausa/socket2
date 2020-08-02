@@ -21,7 +21,6 @@ namespace doyou {
 					return;
 
 				pWSClient->resetDTHeart();
-				
 
 				if (clientState_join == pWSClient->state())
 				{	
@@ -34,7 +33,7 @@ namespace doyou {
 					else
 						pWSClient->onClose();
 				}
-				else if(clientState_run == pWSClient->state()) {
+				else if (clientState_run == pWSClient->state()) {
 					WebSocketHeader& wsh = pWSClient->WebsocketHeader();
 					if (wsh.opcode == opcode_PING)
 					{

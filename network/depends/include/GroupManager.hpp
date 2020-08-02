@@ -39,14 +39,13 @@ namespace doyou
 					_member.erase(itr);
 					return true;
 				}
-
 				return false;
 			}
 
 			bool has(int64_t client)
 			{
 				auto itr = std::find(_member.begin(), _member.end(), client);
-				return itr != _member.end();
+				return (itr != _member.end());
 			}
 
 			int key()
@@ -56,7 +55,7 @@ namespace doyou
 
 			void key(int key)
 			{
-				_key = key;;
+				_key = key;
 			}
 
 			int id()
@@ -66,7 +65,7 @@ namespace doyou
 
 			void id(int id)
 			{
-				_id = id;;
+				_id = id;
 			}
 
 			bool empty()
@@ -78,42 +77,39 @@ namespace doyou
 			{
 				return _member;
 			}
-
 		private:
 			std::vector<int64_t> _member;
 			int _key = 0;
 			int _id = 0;
 		};
 
+		//会话小组管理
 		class GroupManager
 		{
-			
 		private:
 			std::map<int, Group> _map_member;
 			int _index_id = 10000;
 		public:
 			bool create(int& group_id, int group_key, int64_t client)
 			{
-				//如果group_值为0
+				//如果group_id值为0
 				//由GroupManager分配一个group_id
 				if (group_id <= 0)
 				{
 					group_id = ++_index_id;
 				}
 
-				//先查找group_id是否已经存在
+				//先查找group_id是否已存在
 				auto itr = _map_member.find(group_id);
 				if (itr != _map_member.end())
-				{
-					//join可能失败
+				{//join可能失败
 					return join(group_id, group_key, client);
 				}
-				else
-				{
+				else {
 					Group a;
 					a.add(client);
-					a.id(group_id);
 					a.key(group_key);
+					a.id(group_id);
 					_map_member[group_id] = a;
 				}
 
@@ -123,26 +119,27 @@ namespace doyou
 			bool join(int group_id, int group_key, int64_t client)
 			{
 				auto itr = _map_member.find(group_id);
-				if (itr == _map_member.end())
-				{
-					return false;
-				}
 
-				if (itr->second.key() != group_key)
+				if (itr == _map_member.end())
+					return false;
+
+				if(itr->second.key() != group_key)
 					return false;
 
 				itr->second.add(client);
 				return true;
 			}
 
-			bool del(int64_t client, std::vector<int>& group_list)
+			bool find(int64_t client, std::vector<int>& group_list)
 			{
-				for (auto& itr : _map_member)
+				
+				for (auto& itr: _map_member)
 				{
-					itr.second.del(client);
-					group_list.push_back(itr.second.id());
+					if (itr.second.has(client))
+					{
+						group_list.push_back(itr.second.id());
+					}
 				}
-
 				return !group_list.empty();
 			}
 
@@ -153,8 +150,10 @@ namespace doyou
 					return false;
 
 				auto ret = itr->second.del(client);
+
 				if (itr->second.empty())
 					_map_member.erase(itr);
+				
 				return ret;
 			}
 
@@ -165,7 +164,6 @@ namespace doyou
 					return nullptr;
 
 				return &itr->second;
-				
 			}
 
 			bool has(int group_id, int64_t client)
@@ -179,8 +177,4 @@ namespace doyou
 		};
 	}
 }
-
-
-#endif  //_GROUPMANAGER_H_
-
-
+#endif // !_doyou_io_memberManager_HPP_

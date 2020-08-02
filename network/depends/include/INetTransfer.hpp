@@ -4,7 +4,8 @@
 #include"CJsonObject.hpp"
 #include"INetClientS.hpp"
 #include<vector>
-#include <algorithm>
+#include<algorithm>
+
 namespace doyou {
 	namespace io {
 
@@ -57,6 +58,7 @@ namespace doyou {
 						_listeners[i]->writeText(pData, len);
 					}
 				}
+
 			private:
 				std::vector<INetClientS*> _listeners;
 				int index = 0;

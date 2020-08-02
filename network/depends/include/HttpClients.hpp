@@ -165,6 +165,7 @@ namespace doyou {
 					|| 0 == strcmp("Keep-Alive", str)
 					|| 0 == strcmp("Upgrade", str)
 					);
+				
 				return true;
 			}
 			
@@ -237,11 +238,6 @@ namespace doyou {
 					_args_map.clear();
 					_header_map.clear();
 				}
-			}
-
-			bool canWrite(int size)
-			{
-				return _sendBuff.canWrite(size);
 			}
 
 			void resp400BadRequest()
